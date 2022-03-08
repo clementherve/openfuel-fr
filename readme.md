@@ -1,6 +1,6 @@
 # OpenFuel-Fr
 
-Based on the data made public (here)[https://www.prix-carburants.gouv.fr/rubrique/opendata/], I have decided to build a Dart wrapper around it.
+Based on the data made public [here](https://www.prix-carburants.gouv.fr/rubrique/opendata/), I have decided to build a Dart wrapper around it.
 
 ## Example
 
