@@ -2,7 +2,7 @@ import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 
 class SellingPointSearch {
-  final List<SellingPoint> _sellingPoints;
+  final List<GasStation> _sellingPoints;
 
   SellingPointSearch(this._sellingPoints);
 
@@ -15,7 +15,7 @@ class SellingPointSearch {
     return inRange;
   }
 
-  List<SellingPoint> search(
+  List<GasStation> search(
     final String query, {
     final int? searchRadius,
     final LatLng? center,
@@ -42,7 +42,7 @@ class SellingPointSearch {
     }).toList();
   }
 
-  List<SellingPoint> findSellingPointsInRange(
+  List<GasStation> findSellingPointsInRange(
     LatLng center, {
     final int? searchRadius,
     final String? fuelType,
@@ -71,12 +71,12 @@ class SellingPointSearch {
     }).toList();
   }
 
-  SellingPoint? findCheapestInRange(LatLng center,
+  GasStation? findCheapestInRange(LatLng center,
       {required String fuelType,
       final int? searchRadius,
       final bool alwaysOpen = false,
       final Duration lastUpdated = const Duration(days: 1)}) {
-    final List<SellingPoint> inRange = findSellingPointsInRange(center,
+    final List<GasStation> inRange = findSellingPointsInRange(center,
         searchRadius: searchRadius,
         fuelType: fuelType,
         lastUpdated: lastUpdated,

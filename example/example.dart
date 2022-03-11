@@ -2,10 +2,10 @@ import 'package:openfuelfr/openfuelfr.dart';
 
 void main(List<String> args) async {
   final OpenFuelFR openFuelFR = OpenFuelFR();
-  final List<SellingPoint> sellingPoints = await openFuelFR.getInstantPrices();
+  final List<GasStation> sellingPoints = await openFuelFR.getInstantPrices();
   final SellingPointSearch search = SellingPointSearch(sellingPoints);
 
-  SellingPoint? cheapestSP = search.findCheapestInRange(
+  GasStation? cheapestSP = search.findCheapestInRange(
       LatLng(45.75892691993614, 4.8614875724645525),
       alwaysOpen: false,
       fuelType: FuelType.e10,
