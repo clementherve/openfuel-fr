@@ -3,22 +3,15 @@ import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/constant/endpoints.dart';
 import 'package:xml/xml.dart';
-import 'package:logging/logging.dart';
 
 class OpenFuelFR {
   late Dio _dio;
-  final _logger = Logger('OpenFuelFR');
 
   OpenFuelFR() {
     _dio = Dio(BaseOptions(connectTimeout: 1000 * 30, followRedirects: true));
-    _logger.config(Level.ALL);
-
-    Logger.root.onRecord.listen((record) {
-      print('${record.level.name}: ${record.time}: ${record.message}');
-    });
   }
 
-  // parse a xml to a selling point
+  // parse a XmlNode to a SellingPoint
   SellingPoint _toSellingPoint(final XmlNode xml) {
     final String address = xml.getElement('adresse')?.innerText ?? '-';
     final String town = xml.getElement('ville')?.innerText ?? '-';
@@ -66,32 +59,25 @@ class OpenFuelFR {
 
   // return a list of selling points with instant prices
   Future<List<SellingPoint>> getInstantPrices() async {
-    final Stopwatch requestSW = Stopwatch()..start(); // debug
     final Response response = await _dio.get(Endpoints.instant,
         options: Options(responseType: ResponseType.bytes));
-    _logger.info('request: ${requestSW.elapsed.inMilliseconds}ms'); // debug
 
     if ((response.statusCode ?? 400) >= 400) {
-      return List.empty();
+      return List<SellingPoint>.empty();
     }
-
-    final Stopwatch createArchiveSW = Stopwatch()..start(); // debug
 
     final Archive archive = ZipDecoder().decodeBytes(response.data);
-    _logger.info(
-        'create the archive: ${createArchiveSW.elapsed.inMilliseconds}ms'); // debug
 
     if (archive.isEmpty) {
-      return List.empty();
+      return List<SellingPoint>.empty();
     }
 
-    final Stopwatch unzipSW = Stopwatch()..start(); // debug
-    final List<int> data = archive.first.content; // might be very slow
-    _logger.info('unzip: ${unzipSW.elapsed.inMilliseconds}ms'); // debug
+    final List<int> data = archive.first.content;
 
-    final XmlDocument xml = XmlDocument.parse(String.fromCharCodes(data));
+    final XmlDocument xml =
+        XmlDocument.parse(String.fromCharCodes(data)); // beware: very slow!
     if (xml.children.length < 2) {
-      return List.empty();
+      return List<SellingPoint>.empty();
     }
 
     return xml.children[2].children.map((e) => _toSellingPoint(e)).toList();
