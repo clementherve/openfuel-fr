@@ -67,9 +67,6 @@ class SellingPointSearch {
               lastUpdated
           : false;
 
-      if (inRange && mustBeAlwaysOpen && hasFuelCategory)
-        print('$lastUpdated -> $isFresh');
-
       return inRange && mustBeAlwaysOpen && hasFuelCategory && isFresh;
     }).toList();
   }

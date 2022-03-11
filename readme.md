@@ -5,15 +5,20 @@ Based on the data made public [here](https://www.prix-carburants.gouv.fr/rubriqu
 ## Example
 
 ```dart
-  final OpenFuelFR openFuelFR = OpenFuelFR();
-  final List<SellingPoint> sellingPoints = await openFuelFR.getInstantPrices();
+  final SellingPointSearch search = SellingPointSearch(sellingPoints);
 
-  SellingPointSearch.search('Lyon', sellingPoints).forEach((sp) {
-    print('${sp.address}');
-    sp.pricedFuel.forEach((gas) {
-      print('\t${gas.name} - ${gas.price}');
-    });
-  });
+  SellingPoint? cheapestSP = search.findCheapestInRange(
+      LatLng(45.75892691993614, 4.8614875724645525),
+      alwaysOpen: false,
+      fuelType: FuelType.e10,
+      lastUpdated: Duration(hours: 5),
+      searchRadius: 10000
+  );
+
+  if (cheapestSP == null) {
+    // handle gracefully
+  }
+  print(cheapestSP.toJson());
 ```
 
 ## ToDo
