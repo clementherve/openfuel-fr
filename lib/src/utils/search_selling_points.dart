@@ -1,50 +1,93 @@
 import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:logging/logging.dart';
 
 class SellingPointSearch {
   final List<SellingPoint> _sellingPoints;
-  final LatLng? center;
-  final _logger = Logger('OpenFuelFR');
 
-  SellingPointSearch(this._sellingPoints, {this.center}) {
-    _logger.config(Level.ALL);
+  SellingPointSearch(this._sellingPoints);
 
-    Logger.root.onRecord.listen((record) {
-      print('${record.level.name}: ${record.time}: ${record.message}');
-    });
-  }
-
-  bool _isInRange(final LatLng position, int? maxRange) {
+  bool _isInRange(final LatLng position, final LatLng? center, int? maxRange) {
+    if (position.latitude == 0 || position.longitude == 0) return false;
     if (center == null || maxRange == null) return true;
-    return SphericalUtil.computeDistanceBetween(center!, position) / 1000.0 <
-        maxRange;
+    num distance = SphericalUtil.computeDistanceBetween(center, position);
+    bool inRange = distance < maxRange;
+
+    return inRange;
   }
 
   List<SellingPoint> search(
     final String query, {
     final int? searchRadius,
-    final List<FuelType>? fuelTypes,
+    final LatLng? center,
+    final String? fuelTypes,
     final bool alwaysOpen = false,
   }) {
-    final Stopwatch searchSW = Stopwatch()..start(); // debug
-
     final String q = query.toLowerCase();
-    final List<SellingPoint> results = _sellingPoints.where((sp) {
-      final bool inRange =
-          _isInRange(sp.position, searchRadius); // true if any of them is null
+    return _sellingPoints.where((sp) {
+      final bool inRange = _isInRange(
+          sp.position, center, searchRadius); // true if any of them is null
       final bool queryMatch = sp.town.toLowerCase().contains(q) ||
           sp.address.toLowerCase().contains(q);
       final bool mustBeAlwaysOpen = alwaysOpen
           ? sp.isAlwaysOpen
           : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
 
-      // TODO: filter by fuel category
+      bool hasFuelCategory = (fuelTypes == null)
+          ? true
+          : sp
+              .getAvailableFuelTypes()
+              .any((element) => fuelTypes.contains(element));
 
-      return inRange && queryMatch && mustBeAlwaysOpen;
+      return inRange && queryMatch && mustBeAlwaysOpen && hasFuelCategory;
     }).toList();
-    _logger.info('search: ${searchSW.elapsed.inMilliseconds}ms'); // debug
+  }
 
-    return results;
+  List<SellingPoint> findSellingPointsInRange(
+    LatLng center, {
+    final int? searchRadius,
+    final String? fuelType,
+    final Duration lastUpdated = const Duration(days: 1),
+    final bool alwaysOpen = false,
+  }) {
+    return _sellingPoints.where((sp) {
+      final bool inRange = _isInRange(
+          sp.position, center, searchRadius); // true if any of them is null
+      final bool mustBeAlwaysOpen = alwaysOpen
+          ? sp.isAlwaysOpen
+          : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
+
+      bool hasFuelCategory = (fuelType == null)
+          ? true
+          : sp.getAvailableFuelTypes().contains(fuelType);
+
+      bool isFresh = (hasFuelCategory)
+          ? DateTime.now().difference(sp.pricedFuel
+                  .firstWhere((fuel) => fuel.type == fuelType)
+                  .lastUpdated) <
+              lastUpdated
+          : false;
+
+      if (inRange && mustBeAlwaysOpen && hasFuelCategory)
+        print('$lastUpdated -> $isFresh');
+
+      return inRange && mustBeAlwaysOpen && hasFuelCategory && isFresh;
+    }).toList();
+  }
+
+  SellingPoint? findCheapestInRange(LatLng center,
+      {required String fuelType,
+      final int? searchRadius,
+      final bool alwaysOpen = false,
+      final Duration lastUpdated = const Duration(days: 1)}) {
+    final List<SellingPoint> inRange = findSellingPointsInRange(center,
+        searchRadius: searchRadius,
+        fuelType: fuelType,
+        lastUpdated: lastUpdated,
+        alwaysOpen: alwaysOpen);
+    inRange.sort(((a, b) => a
+        .getFuelPriceByType(fuelType)
+        .compareTo(b.getFuelPriceByType(fuelType))));
+
+    return inRange.first;
   }
 }

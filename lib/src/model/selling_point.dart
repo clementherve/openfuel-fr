@@ -30,12 +30,12 @@ class SellingPoint {
   List<PricedFuel> get pricedFuel => _pricedFuel;
 
   List<String> getAvailableFuelTypes() {
-    return _pricedFuel.map((fuel) => fuel.name).toList();
+    return _pricedFuel.map((fuel) => fuel.type).toList();
   }
 
   double getFuelPriceByType(final String fuelType) {
     return _pricedFuel
-        .firstWhere((fuel) => fuel.name == fuelType,
+        .firstWhere((fuel) => fuel.type == fuelType,
             orElse: (() => PricedFuel.empty()))
         .price;
   }
