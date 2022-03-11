@@ -10,14 +10,14 @@ class PricedFuel {
     _price = -1;
   }
 
-  String get name => _fuelType;
+  String get type => _fuelType;
   DateTime get lastUpdated => _lastUpdated;
   bool get isFresh => DateTime.now().difference(_lastUpdated).inDays < 2;
   double get price => _price;
 
   Map toJson() {
     return {
-      'fuel_type': name,
+      'fuel_type': type,
       'last_updated': lastUpdated.toString(),
       'price': price
     };
