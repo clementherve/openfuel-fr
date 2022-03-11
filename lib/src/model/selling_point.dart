@@ -39,4 +39,19 @@ class SellingPoint {
             orElse: (() => PricedFuel.empty()))
         .price;
   }
+
+  Map toJson() {
+    return {
+      'id': _id,
+      'position': [
+        _position.latitude,
+        _position.longitude,
+      ],
+      'address': _address,
+      'town': _town,
+      'is_always_open': _isAlwaysOpen,
+      'prices': [_pricedFuel.map((e) => e.toJson())],
+      'opening_days': [_openingDays.map((e) => e.toJson())]
+    };
+  }
 }

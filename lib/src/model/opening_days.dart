@@ -10,4 +10,12 @@ class OpeningDays {
   String get day => _day;
   bool get isOpen => _isOpen;
   OpeningHours get openingHours => _openingHours;
+
+  Map toJson() {
+    return {
+      'day': _day,
+      'is_open': _isOpen,
+      'opening_hours': [_openingHours.toJson()]
+    };
+  }
 }

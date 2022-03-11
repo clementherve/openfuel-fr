@@ -5,4 +5,11 @@ class OpeningHours {
 
   String get openingHours => _openingHour;
   String get closingHour => _closingHour;
+
+  Map toJson() {
+    return {
+      'opening_hour': _openingHour,
+      'closing_hour': _closingHour,
+    };
+  }
 }

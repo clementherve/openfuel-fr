@@ -1,17 +1,25 @@
 class PricedFuel {
-  late String _name;
+  late String _fuelType;
   late DateTime _lastUpdated;
   late double _price;
-  PricedFuel(this._name, this._lastUpdated, this._price);
+  PricedFuel(this._fuelType, this._lastUpdated, this._price);
 
   PricedFuel.empty() {
-    _name = '-';
+    _fuelType = '-';
     _lastUpdated = DateTime.parse('19700101');
     _price = -1;
   }
 
-  String get name => _name;
+  String get name => _fuelType;
   DateTime get lastUpdated => _lastUpdated;
   bool get isFresh => DateTime.now().difference(_lastUpdated).inDays < 2;
   double get price => _price;
+
+  Map toJson() {
+    return {
+      'fuel_type': name,
+      'last_updated': lastUpdated.toString(),
+      'price': price
+    };
+  }
 }
