@@ -2,7 +2,7 @@ import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/src/model/opening_days.dart';
 import 'package:openfuelfr/src/model/priced_fuel.dart';
 
-class SellingPoint {
+class GasStation {
   late int _id;
   final LatLng _position;
   final String _address;
@@ -13,7 +13,7 @@ class SellingPoint {
   final List<OpeningDays> _openingDays;
   final List<PricedFuel> _pricedFuel;
 
-  SellingPoint(this._position, this._address, this._town, this._isAlwaysOpen,
+  GasStation(this._position, this._address, this._town, this._isAlwaysOpen,
       this._openingDays, this._pricedFuel) {
     _id = Object.hash(_address, _town);
   }

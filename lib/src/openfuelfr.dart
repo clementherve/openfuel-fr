@@ -12,7 +12,7 @@ class OpenFuelFR {
   }
 
   // parse a XmlNode to a SellingPoint
-  SellingPoint _toSellingPoint(final XmlNode xml) {
+  GasStation _toSellingPoint(final XmlNode xml) {
     final String address = xml.getElement('adresse')?.innerText ?? '-';
     final String town = xml.getElement('ville')?.innerText ?? '-';
 
@@ -53,23 +53,23 @@ class OpenFuelFR {
       return OpeningDays(name, isOpen, openingHours);
     }).toList();
 
-    return SellingPoint(
+    return GasStation(
         LatLng(lat, lng), address, town, alwaysOpened, openingDays, pricedFuel);
   }
 
   // return a list of selling points with instant prices
-  Future<List<SellingPoint>> getInstantPrices() async {
+  Future<List<GasStation>> getInstantPrices() async {
     final Response response = await _dio.get(Endpoints.instant,
         options: Options(responseType: ResponseType.bytes));
 
     if ((response.statusCode ?? 400) >= 400) {
-      return List<SellingPoint>.empty();
+      return List<GasStation>.empty();
     }
 
     final Archive archive = ZipDecoder().decodeBytes(response.data);
 
     if (archive.isEmpty) {
-      return List<SellingPoint>.empty();
+      return List<GasStation>.empty();
     }
 
     final List<int> data = archive.first.content;
@@ -77,7 +77,7 @@ class OpenFuelFR {
     final XmlDocument xml =
         XmlDocument.parse(String.fromCharCodes(data)); // beware: very slow!
     if (xml.children.length < 2) {
-      return List<SellingPoint>.empty();
+      return List<GasStation>.empty();
     }
 
     return xml.children[2].children.map((e) => _toSellingPoint(e)).toList();

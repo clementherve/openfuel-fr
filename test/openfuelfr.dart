@@ -6,8 +6,7 @@ void main() async {
 
   test('connect.ok', () async {
     final OpenFuelFR openFuelFR = OpenFuelFR();
-    final List<SellingPoint> sellingPoints =
-        await openFuelFR.getInstantPrices();
+    final List<GasStation> sellingPoints = await openFuelFR.getInstantPrices();
     expect(sellingPoints.length, greaterThan(1));
   });
 }
