@@ -12,6 +12,8 @@ void main(List<String> args) async {
       lastUpdated: Duration(hours: 5),
       searchRadius: 10000);
   if (cheapestSP != null) {
+    final String name = await openFuelFR.getGasStationName(cheapestSP.id);
+    print(name);
     print(cheapestSP.toJson());
   } else {
     print('could not find any');
