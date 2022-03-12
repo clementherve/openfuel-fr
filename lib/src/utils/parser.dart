@@ -19,7 +19,7 @@ class Parser {
 
     final Iterable<XmlElement> pricesXML = xml.findAllElements('prix');
 
-    final List<PricedFuel> pricedFuel = pricesXML.map((e) {
+    final List<Fuel> pricedFuel = pricesXML.map((e) {
       final String name = e.getAttribute('nom') ?? '-';
       final DateTime lastUpdated =
           DateTime.parse(e.getAttribute('maj') ?? '19700101');
@@ -30,7 +30,7 @@ class Parser {
         price = price / 1000; // 	Prix en euros multiplié par 1000
       }
 
-      return PricedFuel(name, lastUpdated, price);
+      return Fuel(name, lastUpdated, price);
     }).toList();
 
     final bool alwaysOpened =

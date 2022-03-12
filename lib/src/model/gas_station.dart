@@ -1,6 +1,6 @@
 import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/src/model/opening_days.dart';
-import 'package:openfuelfr/src/model/priced_fuel.dart';
+import 'package:openfuelfr/src/model/fuel.dart';
 
 class GasStation {
   final int _id;
@@ -11,7 +11,7 @@ class GasStation {
   final bool _isAlwaysOpen;
 
   final List<OpeningDays> _openingDays;
-  final List<PricedFuel> _pricedFuel;
+  final List<Fuel> _pricedFuel;
 
   GasStation(this._id, this._position, this._address, this._town,
       this._isAlwaysOpen, this._openingDays, this._pricedFuel);
@@ -25,7 +25,7 @@ class GasStation {
   bool get isAlwaysOpen => _isAlwaysOpen;
 
   List<OpeningDays> get openingDays => _openingDays;
-  List<PricedFuel> get pricedFuel => _pricedFuel;
+  List<Fuel> get fuels => _pricedFuel;
 
   List<String> getAvailableFuelTypes() {
     return _pricedFuel.map((fuel) => fuel.type).toList();
@@ -34,7 +34,7 @@ class GasStation {
   double getFuelPriceByType(final String fuelType) {
     return _pricedFuel
         .firstWhere((fuel) => fuel.type == fuelType,
-            orElse: (() => PricedFuel.empty()))
+            orElse: (() => Fuel.empty()))
         .price;
   }
 

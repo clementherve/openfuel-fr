@@ -1,10 +1,10 @@
-class PricedFuel {
+class Fuel {
   late String _fuelType;
   late DateTime _lastUpdated;
   late double _price;
-  PricedFuel(this._fuelType, this._lastUpdated, this._price);
+  Fuel(this._fuelType, this._lastUpdated, this._price);
 
-  PricedFuel.empty() {
+  Fuel.empty() {
     _fuelType = '-';
     _lastUpdated = DateTime.parse('19700101');
     _price = -1;

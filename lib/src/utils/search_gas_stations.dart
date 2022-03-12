@@ -1,10 +1,10 @@
 import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 
-class SellingPointSearch {
-  final List<GasStation> _sellingPoints;
+class SearchGasStation {
+  final List<GasStation> _gasStations;
 
-  SellingPointSearch(this._sellingPoints);
+  SearchGasStation(this._gasStations);
 
   bool _isInRange(final LatLng position, final LatLng? center, int? maxRange) {
     if (position.latitude == 0 || position.longitude == 0) return false;
@@ -23,7 +23,7 @@ class SellingPointSearch {
     final bool alwaysOpen = false,
   }) {
     final String q = query.toLowerCase();
-    return _sellingPoints.where((sp) {
+    return _gasStations.where((sp) {
       final bool inRange = _isInRange(
           sp.position, center, searchRadius); // true if any of them is null
       final bool queryMatch = sp.town.toLowerCase().contains(q) ||
@@ -42,14 +42,14 @@ class SellingPointSearch {
     }).toList();
   }
 
-  List<GasStation> findSellingPointsInRange(
+  List<GasStation> findGasStationsInRange(
     LatLng center, {
     final int? searchRadius,
     final String? fuelType,
     final Duration lastUpdated = const Duration(days: 1),
     final bool alwaysOpen = false,
   }) {
-    return _sellingPoints.where((sp) {
+    return _gasStations.where((sp) {
       final bool inRange = _isInRange(
           sp.position, center, searchRadius); // true if any of them is null
       final bool mustBeAlwaysOpen = alwaysOpen
@@ -61,7 +61,7 @@ class SellingPointSearch {
           : sp.getAvailableFuelTypes().contains(fuelType);
 
       bool isFresh = (hasFuelCategory)
-          ? DateTime.now().difference(sp.pricedFuel
+          ? DateTime.now().difference(sp.fuels
                   .firstWhere((fuel) => fuel.type == fuelType)
                   .lastUpdated) <
               lastUpdated
@@ -76,7 +76,7 @@ class SellingPointSearch {
       final int? searchRadius,
       final bool alwaysOpen = false,
       final Duration lastUpdated = const Duration(days: 1)}) {
-    final List<GasStation> inRange = findSellingPointsInRange(center,
+    final List<GasStation> inRange = findGasStationsInRange(center,
         searchRadius: searchRadius,
         fuelType: fuelType,
         lastUpdated: lastUpdated,

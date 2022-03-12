@@ -36,8 +36,6 @@ class OpenFuelFR {
             "credentials": "include"
           },
         ));
-    print(response.statusCode);
-    print(response.statusMessage);
     if ((response.statusCode ?? 400) >= 400) {
       return '-';
     }
