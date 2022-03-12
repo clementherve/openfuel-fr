@@ -84,7 +84,6 @@ class SellingPointSearch {
     inRange.sort(((a, b) => a
         .getFuelPriceByType(fuelType)
         .compareTo(b.getFuelPriceByType(fuelType))));
-
     return inRange.first;
   }
 }

@@ -3,7 +3,7 @@ import 'package:openfuelfr/src/model/opening_days.dart';
 import 'package:openfuelfr/src/model/priced_fuel.dart';
 
 class GasStation {
-  late int _id;
+  final int _id;
   final LatLng _position;
   final String _address;
   final String _town;
@@ -13,10 +13,8 @@ class GasStation {
   final List<OpeningDays> _openingDays;
   final List<PricedFuel> _pricedFuel;
 
-  GasStation(this._position, this._address, this._town, this._isAlwaysOpen,
-      this._openingDays, this._pricedFuel) {
-    _id = Object.hash(_address, _town);
-  }
+  GasStation(this._id, this._position, this._address, this._town,
+      this._isAlwaysOpen, this._openingDays, this._pricedFuel);
 
   int get id => _id;
 

@@ -2,6 +2,7 @@ import 'package:archive/archive.dart';
 import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/constant/endpoints.dart';
+import 'package:openfuelfr/src/utils/parser.dart';
 import 'package:xml/xml.dart';
 
 class OpenFuelFR {
@@ -11,50 +12,37 @@ class OpenFuelFR {
     _dio = Dio(BaseOptions(connectTimeout: 1000 * 30, followRedirects: true));
   }
 
-  // parse a XmlNode to a SellingPoint
-  GasStation _toSellingPoint(final XmlNode xml) {
-    final String address = xml.getElement('adresse')?.innerText ?? '-';
-    final String town = xml.getElement('ville')?.innerText ?? '-';
+  Future<String> getGasStationName(final int id) async {
+    final Response response = await _dio.get('${Endpoints.name}$id',
+        options: Options(
+          headers: {
+            "accept":
+                "text/javascript, text/html, application/xml, text/xml, */*",
+            "accept-language": "en-US,en;q=0.9",
+            "sec-ch-ua":
+                "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"98\", \"Google Chrome\";v=\"98\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Linux\"",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            "x-prototype-version": "1.7",
+            "x-requested-with": "XMLHttpRequest",
+            "referrer": "https://www.prix-carburants.gouv.fr/",
+            "referrerPolicy": "same-origin",
+            "body": null,
+            "method": "GET",
+            "mode": "cors",
+            "credentials": "include"
+          },
+        ));
+    print(response.statusCode);
+    print(response.statusMessage);
+    if ((response.statusCode ?? 400) >= 400) {
+      return '-';
+    }
 
-    // see Q4 https://www.prix-carburants.gouv.fr/rubrique/opendata/
-    final double lat =
-        double.parse(xml.getAttribute('latitude') ?? '0.0') / 100000;
-    final double lng =
-        double.parse(xml.getAttribute('longitude') ?? '0.0') / 100000;
-
-    final Iterable<XmlElement> pricesXML = xml.findAllElements('prix');
-
-    final List<PricedFuel> pricedFuel = pricesXML.map((e) {
-      final String name = e.getAttribute('nom') ?? '-';
-      final DateTime lastUpdated =
-          DateTime.parse(e.getAttribute('maj') ?? '19700101');
-      final double price = double.parse(e.getAttribute('valeur') ?? '0.0');
-
-      return PricedFuel(name, lastUpdated, price);
-    }).toList();
-
-    final bool alwaysOpened =
-        xml.getElement('horaires')?.getAttribute('automate-24-24') == '1';
-
-    final Iterable<XmlElement> openingDaysXML = xml.findAllElements('jour');
-    final List<OpeningDays> openingDays = openingDaysXML.map((e) {
-      final String name = e.getAttribute('nom') ?? '-';
-      final bool isOpen = e.getAttribute('ferme') == '';
-
-      final String openingHour =
-          e.getElement('horaire')?.getAttribute('ouverture') ??
-              (alwaysOpened ? '00.00' : '-');
-      final String closingHour =
-          e.getElement('horaire')?.getAttribute('fermeture') ??
-              (alwaysOpened ? '23.59' : '-');
-
-      final OpeningHours openingHours = OpeningHours(openingHour, closingHour);
-
-      return OpeningDays(name, isOpen, openingHours);
-    }).toList();
-
-    return GasStation(
-        LatLng(lat, lng), address, town, alwaysOpened, openingDays, pricedFuel);
+    return Parser.toGasStationName(response.data);
   }
 
   // return a list of selling points with instant prices
@@ -80,6 +68,10 @@ class OpenFuelFR {
       return List<GasStation>.empty();
     }
 
-    return xml.children[2].children.map((e) => _toSellingPoint(e)).toList();
+    return xml.children[2].children.map((e) => Parser.toGasStation(e)).toList();
+  }
+
+  Future<List<GasStation>> getDailyPrices() async {
+    throw Exception('not implemented');
   }
 }
