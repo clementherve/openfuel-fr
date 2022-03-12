@@ -5,9 +5,14 @@ Based on the data made public [here](https://www.prix-carburants.gouv.fr/rubriqu
 ## Example
 
 ```dart
-  final SellingPointSearch search = SellingPointSearch(sellingPoints);
+  // get prices and parse them
+  final OpenFuelFR openFuelFR = OpenFuelFR();
+  final List<GasStation> gasStations = await openFuelFR.getInstantPrices();
 
-  SellingPoint? cheapestSP = search.findCheapestInRange(
+  // other search types are available
+  final SearchGasStation search = SearchGasStation(gasStations);
+
+  GasStation? cheapest = search.findCheapestInRange(
       LatLng(45.75892691993614, 4.8614875724645525),
       alwaysOpen: false,
       fuelType: FuelType.e10,
@@ -15,12 +20,15 @@ Based on the data made public [here](https://www.prix-carburants.gouv.fr/rubriqu
       searchRadius: 10000
   );
 
-  if (cheapestSP == null) {
-    // handle gracefully
+  if (cheapest == null) {
+    // if none was found, handle gracefully
   }
-  print(cheapestSP.toJson());
+
+  final String name = await openFuelFR.getGasStationName(cheapest.id);
+  print(name);
+  cheapest.pricedFuel.forEach((fuel) => print('\t${fuel.type}: ${fuel.price}'));
 ```
 
-## ToDo
+## To-Do
 - Add more requests (daily, yearly, archive)
 - Add more tests (search test...)
