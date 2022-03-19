@@ -1,8 +1,6 @@
-import 'package:maps_toolkit/maps_toolkit.dart';
-import 'package:openfuelfr/src/model/opening_days.dart';
-import 'package:openfuelfr/src/model/fuel.dart';
+import 'package:openfuelfr/openfuelfr.dart';
 
-class GasStation {
+class SearchResult {
   late int _id;
   late LatLng _position;
   late String _address;
@@ -13,18 +11,20 @@ class GasStation {
   late List<OpeningDays> _openingDays;
   late List<Fuel> _pricedFuel;
 
-  GasStation(this._id, this._position, this._address, this._town,
-      this._isAlwaysOpen, this._openingDays, this._pricedFuel);
+  late double distance;
+  late String name;
 
-  GasStation.empty() {
-    _id = -1;
-    _position = LatLng(45, 5);
-    _address = '';
-    _town = '';
-    _isAlwaysOpen = false;
-    _openingDays = [];
-    _pricedFuel = [];
-  }
+  SearchResult(
+      this._id,
+      this._position,
+      this.distance,
+      this.name,
+      this._address,
+      this._town,
+      this._isAlwaysOpen,
+      this._openingDays,
+      this._pricedFuel);
+
   int get id => _id;
 
   LatLng get position => _position;
@@ -54,6 +54,8 @@ class GasStation {
         _position.latitude,
         _position.longitude,
       ],
+      'distance': distance,
+      'name': name,
       'address': _address,
       'town': _town,
       'is_always_open': _isAlwaysOpen,
