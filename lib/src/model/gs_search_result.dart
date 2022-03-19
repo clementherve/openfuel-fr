@@ -11,14 +11,14 @@ class SearchResult {
   late List<OpeningDays> _openingDays;
   late List<Fuel> _pricedFuel;
 
-  late double distance;
-  late String name;
+  late double _distance;
+  late String _name;
 
   SearchResult(
       this._id,
       this._position,
-      this.distance,
-      this.name,
+      this._distance,
+      this._name,
       this._address,
       this._town,
       this._isAlwaysOpen,
@@ -30,6 +30,8 @@ class SearchResult {
   LatLng get position => _position;
   String get address => _address;
   String get town => _town;
+  String get name => _name;
+  double get distance => _distance;
 
   bool get isAlwaysOpen => _isAlwaysOpen;
 
