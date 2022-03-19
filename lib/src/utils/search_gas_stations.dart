@@ -46,6 +46,7 @@ class SearchGasStation {
     LatLng center, {
     final int? searchRadius,
     final String? fuelType,
+    final List<int>? constrainingIds,
     final Duration lastUpdated = const Duration(days: 1),
     final bool alwaysOpen = false,
   }) {
@@ -56,31 +57,40 @@ class SearchGasStation {
           ? sp.isAlwaysOpen
           : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
 
-      bool hasFuelCategory = (fuelType == null)
+      final bool hasFuelCategory = (fuelType == null)
           ? true
           : sp.getAvailableFuelTypes().contains(fuelType);
 
-      bool isFresh = (hasFuelCategory)
+      final bool isFresh = (hasFuelCategory)
           ? DateTime.now().difference(sp.fuels
                   .firstWhere((fuel) => fuel.type == fuelType)
                   .lastUpdated) <
               lastUpdated
           : false;
+      final bool correctId =
+          constrainingIds == null ? true : constrainingIds.contains(sp.id);
 
-      return inRange && mustBeAlwaysOpen && hasFuelCategory && isFresh;
+      return inRange &&
+          mustBeAlwaysOpen &&
+          hasFuelCategory &&
+          isFresh &&
+          correctId;
     }).toList();
   }
 
+  /// Can be null if no stations are in range
   GasStation? findCheapestInRange(LatLng center,
       {required String fuelType,
       final int? searchRadius,
       final bool alwaysOpen = false,
+      final List<int>? constrainingIds,
       final Duration lastUpdated = const Duration(days: 1)}) {
     final List<GasStation> inRange = findGasStationsInRange(center,
         searchRadius: searchRadius,
         fuelType: fuelType,
         lastUpdated: lastUpdated,
         alwaysOpen: alwaysOpen);
+    if (inRange.isEmpty) return null;
     inRange.sort(((a, b) => a
         .getFuelPriceByType(fuelType)
         .compareTo(b.getFuelPriceByType(fuelType))));
