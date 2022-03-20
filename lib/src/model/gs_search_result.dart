@@ -25,6 +25,19 @@ class SearchResult {
       this._openingDays,
       this._pricedFuel);
 
+  SearchResult.fromGasStation(final GasStation gs,
+      {String? name, double? distance}) {
+    _id = gs.id;
+    _position = gs.position;
+    _address = gs.address;
+    _town = gs.town;
+    _isAlwaysOpen = gs.isAlwaysOpen;
+    _openingDays = gs.openingDays;
+    _pricedFuel = gs.fuels;
+    _distance = distance ?? double.infinity;
+    _name = name ?? 'n/a';
+  }
+
   int get id => _id;
 
   LatLng get position => _position;
@@ -47,6 +60,11 @@ class SearchResult {
         .firstWhere((fuel) => fuel.type == fuelType,
             orElse: (() => Fuel.empty()))
         .price;
+  }
+
+  GasStation toGasStation() {
+    return GasStation(_id, _position, _address, _town, _isAlwaysOpen,
+        _openingDays, _pricedFuel);
   }
 
   Map toJson() {

@@ -1,5 +1,6 @@
 import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/openfuelfr.dart';
+import 'package:openfuelfr/src/model/gs_search_result.dart';
 
 class SearchGasStation {
   final List<GasStation> _gasStations;
@@ -42,7 +43,7 @@ class SearchGasStation {
     }).toList();
   }
 
-  List<GasStation> findGasStationsInRange(
+  List<SearchResult> findGasStationsInRange(
     LatLng center, {
     final int? searchRadius,
     final String? fuelType,
@@ -50,42 +51,45 @@ class SearchGasStation {
     final Duration lastUpdated = const Duration(days: 1),
     final bool alwaysOpen = false,
   }) {
-    return _gasStations.where((sp) {
-      final bool inRange = _isInRange(
-          sp.position, center, searchRadius); // true if any of them is null
-      final bool mustBeAlwaysOpen = alwaysOpen
-          ? sp.isAlwaysOpen
-          : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
+    return _gasStations
+        .where((sp) {
+          final bool inRange = _isInRange(
+              sp.position, center, searchRadius); // true if any of them is null
+          final bool mustBeAlwaysOpen = alwaysOpen
+              ? sp.isAlwaysOpen
+              : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
 
-      final bool hasFuelCategory = (fuelType == null)
-          ? true
-          : sp.getAvailableFuelTypes().contains(fuelType);
+          final bool hasFuelCategory = (fuelType == null)
+              ? true
+              : sp.getAvailableFuelTypes().contains(fuelType);
 
-      final bool isFresh = (hasFuelCategory)
-          ? DateTime.now().difference(sp.fuels
-                  .firstWhere((fuel) => fuel.type == fuelType)
-                  .lastUpdated) <
-              lastUpdated
-          : false;
-      final bool correctId =
-          constrainingIds == null ? true : constrainingIds.contains(sp.id);
+          final bool isFresh = (hasFuelCategory)
+              ? DateTime.now().difference(sp.fuels
+                      .firstWhere((fuel) => fuel.type == fuelType)
+                      .lastUpdated) <
+                  lastUpdated
+              : false;
+          final bool correctId =
+              constrainingIds == null ? true : constrainingIds.contains(sp.id);
 
-      return inRange &&
-          mustBeAlwaysOpen &&
-          hasFuelCategory &&
-          isFresh &&
-          correctId;
-    }).toList();
+          return inRange &&
+              mustBeAlwaysOpen &&
+              hasFuelCategory &&
+              isFresh &&
+              correctId;
+        })
+        .map((e) => SearchResult.fromGasStation(e))
+        .toList();
   }
 
   /// Can be null if no stations are in range
-  GasStation? findCheapestInRange(LatLng center,
+  SearchResult? findCheapestInRange(LatLng center,
       {required String fuelType,
       final int? searchRadius,
       final bool alwaysOpen = false,
       final List<int>? constrainingIds,
       final Duration lastUpdated = const Duration(days: 1)}) {
-    final List<GasStation> inRange = findGasStationsInRange(center,
+    final List<SearchResult> inRange = findGasStationsInRange(center,
         searchRadius: searchRadius,
         fuelType: fuelType,
         lastUpdated: lastUpdated,
