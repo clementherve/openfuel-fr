@@ -12,7 +12,7 @@ Based on the data made public [here](https://www.prix-carburants.gouv.fr/rubriqu
   // other search types are available
   final SearchGasStation search = SearchGasStation(gasStations);
 
-  GasStation? cheapest = search.findCheapestInRange(
+  SearchResult? cheapest = search.findCheapestInRange(
       LatLng(45.75892691993614, 4.8614875724645525),
       alwaysOpen: false,
       fuelType: FuelType.e10,
