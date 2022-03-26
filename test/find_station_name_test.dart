@@ -8,4 +8,8 @@ void main() async {
     String gasStationName = await openFuel.getGasStationName(8360003);
     expect(gasStationName, equals('CARREFOUR CONTACT'));
   });
+
+  test('', () async {
+    OpenFuelFR openFuel = OpenFuelFR();
+  });
 }

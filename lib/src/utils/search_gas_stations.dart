@@ -4,100 +4,92 @@ import 'package:openfuelfr/src/model/gs_search_result.dart';
 
 class SearchGasStation {
   final List<GasStation> _gasStations;
+  List<SearchResult> _results = [];
+  final Map<int, double> _distances = {};
 
   SearchGasStation(this._gasStations);
 
-  bool _isInRange(final LatLng position, final LatLng? center, int? maxRange) {
-    if (position.latitude == 0 || position.longitude == 0) return false;
-    if (center == null || maxRange == null) return true;
-    num distance = SphericalUtil.computeDistanceBetween(center, position);
-    bool inRange = distance < maxRange;
+  double distance(int id) => _distances[id] ?? double.infinity;
 
-    return inRange;
+  /// return
+  /// the distance if none of the args are null
+  /// 0 if one of the arguments are null
+  double _distance(final LatLng position, final LatLng? center) {
+    if (position.latitude == 0 || position.longitude == 0 || center == null) {
+      return double.infinity;
+    }
+    return SphericalUtil.computeDistanceBetween(center, position).toDouble();
   }
 
-  List<GasStation> search(
-    final String query, {
-    final int? searchRadius,
-    final LatLng? center,
-    final String? fuelTypes,
-    final bool alwaysOpen = false,
-  }) {
-    final String q = query.toLowerCase();
-    return _gasStations.where((sp) {
-      final bool inRange = _isInRange(
-          sp.position, center, searchRadius); // true if any of them is null
-      final bool queryMatch = sp.town.toLowerCase().contains(q) ||
-          sp.address.toLowerCase().contains(q);
-      final bool mustBeAlwaysOpen = alwaysOpen
-          ? sp.isAlwaysOpen
-          : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
-
-      bool hasFuelCategory = (fuelTypes == null)
-          ? true
-          : sp
-              .getAvailableFuelTypes()
-              .any((element) => fuelTypes.contains(element));
-
-      return inRange && queryMatch && mustBeAlwaysOpen && hasFuelCategory;
-    }).toList();
-  }
-
-  List<SearchResult> findGasStationsInRange(
+  List<SearchResult> findGasStationsDistance(
     LatLng center, {
-    final int? searchRadius,
+    required int searchRadius,
     final String? fuelType,
     final List<int>? constrainingIds,
     final Duration lastUpdated = const Duration(days: 1),
     final bool alwaysOpen = false,
   }) {
-    return _gasStations
-        .where((sp) {
-          final bool inRange = _isInRange(
-              sp.position, center, searchRadius); // true if any of them is null
-          final bool mustBeAlwaysOpen = alwaysOpen
-              ? sp.isAlwaysOpen
-              : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
+    _results = _gasStations.map((e) => SearchResult(e)).toList();
+    _results = _results.where((gs) {
+      final double distance = _distance(gs.position, center);
+      // final bool inRange = _isInRange(distance, searchRadius);
+      final bool mustBeAlwaysOpen = alwaysOpen
+          ? gs.isAlwaysOpen
+          : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
 
-          final bool hasFuelCategory = (fuelType == null)
-              ? true
-              : sp.getAvailableFuelTypes().contains(fuelType);
+      final bool hasFuelCategory = (fuelType == null)
+          ? true
+          : gs.getAvailableFuelTypes().contains(fuelType);
 
-          final bool isFresh = (hasFuelCategory)
-              ? DateTime.now().difference(sp.fuels
-                      .firstWhere((fuel) => fuel.type == fuelType)
-                      .lastUpdated) <
-                  lastUpdated
-              : false;
-          final bool correctId =
-              constrainingIds == null ? true : constrainingIds.contains(sp.id);
+      final bool isFresh = (hasFuelCategory)
+          ? DateTime.now().difference(gs.fuels
+                  .firstWhere((fuel) => fuel.type == fuelType)
+                  .lastUpdated) <
+              lastUpdated
+          : false;
+      final bool correctId =
+          constrainingIds == null ? true : constrainingIds.contains(gs.id);
 
-          return inRange &&
-              mustBeAlwaysOpen &&
-              hasFuelCategory &&
-              isFresh &&
-              correctId;
-        })
-        .map((e) => SearchResult.fromGasStation(e))
-        .toList();
+      // save the distance
+      _distances[gs.id] = distance;
+
+      // inRange &&
+      return mustBeAlwaysOpen && hasFuelCategory && isFresh && correctId;
+    }).toList();
+
+    _results.sort(((a, b) => distance(a.id).compareTo(distance(b.id))));
+    return _results;
   }
 
-  /// Can be null if no stations are in range
-  SearchResult? findCheapestInRange(LatLng center,
+  SearchResult findCheapestInRange(LatLng center,
       {required String fuelType,
-      final int? searchRadius,
+      required int searchRadius,
       final bool alwaysOpen = false,
       final List<int>? constrainingIds,
       final Duration lastUpdated = const Duration(days: 1)}) {
-    final List<SearchResult> inRange = findGasStationsInRange(center,
+    final List<SearchResult> distanceSorted = findGasStationsDistance(center,
         searchRadius: searchRadius,
         fuelType: fuelType,
         lastUpdated: lastUpdated,
         alwaysOpen: alwaysOpen);
-    if (inRange.isEmpty) return null;
-    inRange.sort(((a, b) => a
-        .getFuelPriceByType(fuelType)
-        .compareTo(b.getFuelPriceByType(fuelType))));
-    return inRange.first;
+
+    distanceSorted.first.distance = distance(distanceSorted.first.id);
+
+    if (distance(distanceSorted.first.id) > searchRadius) {
+      // the closest gas station is outside of the search radius
+      // return it
+      return distanceSorted.first;
+    } else {
+      final List<SearchResult> inRange =
+          distanceSorted.where((gs) => distance(gs.id) < searchRadius).toList();
+
+      inRange.sort(((a, b) {
+        return a
+            .getFuelPriceByType(fuelType)
+            .compareTo(b.getFuelPriceByType(fuelType));
+      }));
+      inRange.first.distance = distance(inRange.first.id);
+      return inRange.first;
+    }
   }
 }
