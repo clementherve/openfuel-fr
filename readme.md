@@ -1,6 +1,26 @@
 # OpenFuel-Fr
 
-Based on the data made public [here](https://www.prix-carburants.gouv.fr/rubrique/opendata/), I have decided to build a Dart wrapper around it.
+Un client Dart pour récupérer les prix des carburants en France, depuis les données gouvernementales ouvertes disponibles [ici](https://www.prix-carburants.gouv.fr/rubrique/opendata/).
+
+## Principales données récupérées
+**GasStation**
+```dart
+  int id;
+  LatLng position;
+  String address;
+  String town;
+  bool isAlwaysOpen;
+  List<OpeningDays> openingDays;
+  List<Fuel> fuelPrices;
+```
+
+**Fuel**
+```dart
+  String fuelType;
+  DateTime lastUpdated;
+  double price;
+```
+
 
 ## Example
 
