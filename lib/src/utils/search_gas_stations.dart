@@ -3,11 +3,14 @@ import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/model/gs_search_result.dart';
 
 class SearchGasStation {
-  final List<GasStation> _gasStations;
-  List<SearchResult> _results = [];
-  final Map<int, double> _distances = {};
+  late List<GasStation> _gasStations;
+  late List<SearchResult> _results = [];
+  late final Map<int, double> _distances = {};
 
   SearchGasStation(this._gasStations);
+  SearchGasStation.empty();
+
+  SearchGasStation.setGasStations(this._gasStations);
 
   double distance(int id) => _distances[id] ?? double.infinity;
 
