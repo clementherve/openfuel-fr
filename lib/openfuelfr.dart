@@ -4,6 +4,7 @@ export 'src/model/fuel.dart' show Fuel;
 export 'src/model/opening_days.dart' show OpeningDays;
 export 'src/model/opening_hours.dart' show OpeningHours;
 export 'src/model/gas_station.dart' show GasStation;
+export 'src/model/search_result.dart' show SearchResult;
 
 export 'src/constant/fuel_types.dart' show FuelType;
 

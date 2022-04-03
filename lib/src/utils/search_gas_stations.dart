@@ -1,6 +1,5 @@
 import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/model/gs_search_result.dart';
 
 class SearchGasStation {
   late List<GasStation> _gasStations;
@@ -10,9 +9,18 @@ class SearchGasStation {
   SearchGasStation(this._gasStations);
   SearchGasStation.empty();
 
-  SearchGasStation.setGasStations(this._gasStations);
+  void setGasStations(final List<GasStation> gasStations) {
+    print('setGasStations: ${gasStations.length}');
+    _gasStations = gasStations;
+  }
 
   double distance(int id) => _distances[id] ?? double.infinity;
+
+  List<SearchResult> results() => _gasStations.map((e) {
+        SearchResult sr = SearchResult(e);
+        sr.distance = distance(e.id);
+        return sr;
+      }).toList();
 
   /// return
   /// the distance if none of the args are null
@@ -28,17 +36,16 @@ class SearchGasStation {
     LatLng center, {
     required int searchRadius,
     final String? fuelType,
-    final List<int>? constrainingIds,
     final Duration lastUpdated = const Duration(days: 1),
-    final bool alwaysOpen = false,
   }) {
+    print('_gasStations.length: ${_gasStations.length}');
     _results = _gasStations.map((e) => SearchResult(e)).toList();
+
+    print('_results.length: ${_results.length}');
+
     _results = _results.where((gs) {
       final double distance = _distance(gs.position, center);
       // final bool inRange = _isInRange(distance, searchRadius);
-      final bool mustBeAlwaysOpen = alwaysOpen
-          ? gs.isAlwaysOpen
-          : true; // true if alwaysOpen = false, sp.isAlwaysOpen else
 
       final bool hasFuelCategory = (fuelType == null)
           ? true
@@ -50,14 +57,12 @@ class SearchGasStation {
                   .lastUpdated) <
               lastUpdated
           : false;
-      final bool correctId =
-          constrainingIds == null ? true : constrainingIds.contains(gs.id);
 
       // save the distance
       _distances[gs.id] = distance;
 
       // inRange &&
-      return mustBeAlwaysOpen && hasFuelCategory && isFresh && correctId;
+      return hasFuelCategory && isFresh;
     }).toList();
 
     _results.sort(((a, b) => distance(a.id).compareTo(distance(b.id))));
@@ -67,14 +72,31 @@ class SearchGasStation {
   SearchResult findCheapestInRange(LatLng center,
       {required String fuelType,
       required int searchRadius,
-      final bool alwaysOpen = false,
+      final bool? alwaysOpen = false,
       final List<int>? constrainingIds,
       final Duration lastUpdated = const Duration(days: 1)}) {
-    final List<SearchResult> distanceSorted = findGasStationsDistance(center,
-        searchRadius: searchRadius,
-        fuelType: fuelType,
-        lastUpdated: lastUpdated,
-        alwaysOpen: alwaysOpen);
+    List<SearchResult> distanceSorted = findGasStationsDistance(
+      center,
+      searchRadius: searchRadius,
+      fuelType: fuelType,
+      lastUpdated: lastUpdated,
+    );
+
+    print('distanceSorted.length: ${distanceSorted.length}');
+
+    if (constrainingIds != null) {
+      final List<SearchResult> tmp = distanceSorted
+          .where((station) => constrainingIds.contains(station.id))
+          .toList();
+      distanceSorted = tmp.isNotEmpty ? tmp : distanceSorted;
+    }
+
+    if (alwaysOpen != null) {
+      final List<SearchResult> tmp = distanceSorted
+          .where((station) => station.isAlwaysOpen == alwaysOpen)
+          .toList();
+      distanceSorted = tmp.isNotEmpty ? tmp : distanceSorted;
+    }
 
     distanceSorted.first.distance = distance(distanceSorted.first.id);
 
