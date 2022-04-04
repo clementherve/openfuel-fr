@@ -66,7 +66,10 @@ class OpenFuelFR {
       return List<GasStation>.empty();
     }
 
-    return xml.children[2].children.map((e) => Parser.toGasStation(e)).toList();
+    return xml.children[2].children
+        .map((e) => Parser.toGasStation(e))
+        .where((station) => station.fuels.isNotEmpty && station.address != '-')
+        .toList();
   }
 
   Future<List<GasStation>> getDailyPrices() async {

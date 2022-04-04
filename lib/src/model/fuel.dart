@@ -15,7 +15,7 @@ class Fuel {
   bool get isFresh => DateTime.now().difference(_lastUpdated).inDays < 2;
   double get price => _price;
 
-  Map toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'fuel_type': type,
       'last_updated': lastUpdated.toString(),

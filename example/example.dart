@@ -1,5 +1,5 @@
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/model/gs_search_result.dart';
+import 'package:openfuelfr/src/model/search_result.dart';
 
 void main(List<String> args) async {
   final OpenFuelFR openFuelFR = OpenFuelFR();

@@ -11,7 +11,7 @@ class OpeningDays {
   bool get isOpen => _isOpen;
   OpeningHours get openingHours => _openingHours;
 
-  Map toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'day': _day,
       'is_open': _isOpen,

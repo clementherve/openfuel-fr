@@ -16,7 +16,7 @@ class SearchResult extends GasStation {
         );
 
   @override
-  Map toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'position': [
@@ -28,8 +28,8 @@ class SearchResult extends GasStation {
       'address': address,
       'town': town,
       'is_always_open': isAlwaysOpen,
-      'prices': [fuels.map((e) => e.toJson())],
-      'opening_days': [openingDays.map((e) => e.toJson())]
+      'prices': fuels.map((e) => e.toJson()).toList(),
+      'opening_days': openingDays.map((e) => e.toJson()).toList()
     };
   }
 }

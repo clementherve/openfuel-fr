@@ -42,7 +42,7 @@ class GasStation {
         .price;
   }
 
-  Map toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'id': _id,
       'position': [
@@ -52,8 +52,8 @@ class GasStation {
       'address': _address,
       'town': _town,
       'is_always_open': _isAlwaysOpen,
-      'prices': [_fuelPrices.map((e) => e.toJson())],
-      'opening_days': [_openingDays.map((e) => e.toJson())]
+      'prices': _fuelPrices.map((e) => e.toJson()).toList(),
+      'opening_days': _openingDays.map((e) => e.toJson()).toList()
     };
   }
 }
