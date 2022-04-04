@@ -15,6 +15,7 @@ class SearchGasStation {
   }
 
   double distance(int id) => _distances[id] ?? double.infinity;
+  Map<int, double> get distances => _distances;
 
   List<SearchResult> results() => _gasStations.map((e) {
         SearchResult sr = SearchResult(e);
