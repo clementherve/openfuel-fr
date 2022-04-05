@@ -3,7 +3,7 @@ import 'package:openfuelfr/openfuelfr.dart';
 
 class SearchGasStation {
   late List<GasStation> _gasStations;
-  late List<SearchResult> _results = [];
+  late List<GasStation> _results = [];
   late final Map<int, double> _distances = {};
 
   SearchGasStation(this._gasStations);
@@ -17,11 +17,7 @@ class SearchGasStation {
   double distance(int id) => _distances[id] ?? double.infinity;
   Map<int, double> get distances => _distances;
 
-  List<SearchResult> results() => _gasStations.map((e) {
-        SearchResult sr = SearchResult(e);
-        sr.distance = distance(e.id);
-        return sr;
-      }).toList();
+  List<GasStation> stations() => _gasStations;
 
   /// return
   /// the distance if none of the args are null
@@ -33,17 +29,12 @@ class SearchGasStation {
     return SphericalUtil.computeDistanceBetween(center, position).toDouble();
   }
 
-  List<SearchResult> findGasStationsDistance(
+  List<GasStation> findGasStationsDistance(
     LatLng center, {
     required int searchRadius,
     final String? fuelType,
     final Duration lastUpdated = const Duration(days: 1),
   }) {
-    print('_gasStations.length: ${_gasStations.length}');
-    _results = _gasStations.map((e) => SearchResult(e)).toList();
-
-    print('_results.length: ${_results.length}');
-
     _results = _results.where((gs) {
       final double distance = _distance(gs.position, center);
       // final bool inRange = _isInRange(distance, searchRadius);
@@ -70,13 +61,13 @@ class SearchGasStation {
     return _results;
   }
 
-  SearchResult findCheapestInRange(LatLng center,
+  GasStation findCheapestInRange(LatLng center,
       {required String fuelType,
       required int searchRadius,
       final bool? alwaysOpen = false,
       final List<int>? constrainingIds,
       final Duration lastUpdated = const Duration(days: 1)}) {
-    List<SearchResult> distanceSorted = findGasStationsDistance(
+    List<GasStation> distanceSorted = findGasStationsDistance(
       center,
       searchRadius: searchRadius,
       fuelType: fuelType,
@@ -86,27 +77,25 @@ class SearchGasStation {
     print('distanceSorted.length: ${distanceSorted.length}');
 
     if (constrainingIds != null) {
-      final List<SearchResult> tmp = distanceSorted
+      final List<GasStation> tmp = distanceSorted
           .where((station) => constrainingIds.contains(station.id))
           .toList();
       distanceSorted = tmp.isNotEmpty ? tmp : distanceSorted;
     }
 
     if (alwaysOpen != null) {
-      final List<SearchResult> tmp = distanceSorted
+      final List<GasStation> tmp = distanceSorted
           .where((station) => station.isAlwaysOpen == alwaysOpen)
           .toList();
       distanceSorted = tmp.isNotEmpty ? tmp : distanceSorted;
     }
-
-    distanceSorted.first.distance = distance(distanceSorted.first.id);
 
     if (distance(distanceSorted.first.id) > searchRadius) {
       // the closest gas station is outside of the search radius
       // return it
       return distanceSorted.first;
     } else {
-      final List<SearchResult> inRange =
+      final List<GasStation> inRange =
           distanceSorted.where((gs) => distance(gs.id) < searchRadius).toList();
 
       inRange.sort(((a, b) {
@@ -114,7 +103,6 @@ class SearchGasStation {
             .getFuelPriceByType(fuelType)
             .compareTo(b.getFuelPriceByType(fuelType));
       }));
-      inRange.first.distance = distance(inRange.first.id);
       return inRange.first;
     }
   }

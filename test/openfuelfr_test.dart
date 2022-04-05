@@ -1,5 +1,4 @@
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/model/search_result.dart';
 import 'package:test/test.dart';
 
 void main() async {
@@ -30,14 +29,13 @@ void main() async {
     ];
 
     for (int i = 0; i < ranges.length; i++) {
-      SearchResult result = search.findCheapestInRange(
+      GasStation result = search.findCheapestInRange(
           LatLng(45.76415682101847, 4.840621053489836),
           fuelType: FuelType.e10,
           searchRadius: ranges[i]);
       String name = await openFuelFR.getGasStationName(result.id);
 
       print('range: ${ranges[i]}');
-      print('distance: ${result.distance}');
       print('name: $name');
       print('address: ${result.address}');
       print('price: ${result.getFuelPriceByType(FuelType.e10)}');

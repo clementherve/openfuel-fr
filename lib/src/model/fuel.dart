@@ -7,7 +7,7 @@ class Fuel {
   Fuel.empty() {
     _fuelType = '-';
     _lastUpdated = DateTime.parse('19700101');
-    _price = -1;
+    _price = double.infinity;
   }
 
   String get type => _fuelType;
