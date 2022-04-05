@@ -2,8 +2,8 @@ import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 
 class SearchGasStation {
-  late List<GasStation> _gasStations;
-  late List<GasStation> _results = [];
+  late List<GasStation> _gasStations = [];
+  late List<GasStation> _filteredGasStations = [];
   late final Map<int, double> _distances = {};
 
   SearchGasStation(this._gasStations);
@@ -17,7 +17,8 @@ class SearchGasStation {
   double distance(int id) => _distances[id] ?? double.infinity;
   Map<int, double> get distances => _distances;
 
-  List<GasStation> stations() => _gasStations;
+  List<GasStation> allStations() => _gasStations;
+  List<GasStation> filteredStations() => _filteredGasStations;
 
   /// return
   /// the distance if none of the args are null
@@ -35,7 +36,7 @@ class SearchGasStation {
     final String? fuelType,
     final Duration lastUpdated = const Duration(days: 1),
   }) {
-    _results = _results.where((gs) {
+    _filteredGasStations = _gasStations.where((gs) {
       final double distance = _distance(gs.position, center);
       // final bool inRange = _isInRange(distance, searchRadius);
 
@@ -57,8 +58,9 @@ class SearchGasStation {
       return hasFuelCategory && isFresh;
     }).toList();
 
-    _results.sort(((a, b) => distance(a.id).compareTo(distance(b.id))));
-    return _results;
+    _filteredGasStations
+        .sort(((a, b) => distance(a.id).compareTo(distance(b.id))));
+    return _filteredGasStations;
   }
 
   GasStation findCheapestInRange(LatLng center,
@@ -73,6 +75,10 @@ class SearchGasStation {
       fuelType: fuelType,
       lastUpdated: lastUpdated,
     );
+
+    if (distanceSorted.isEmpty) {
+      throw Exception('Aucune station trouvée !');
+    }
 
     print('distanceSorted.length: ${distanceSorted.length}');
 
