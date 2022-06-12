@@ -1,10 +1,8 @@
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:xml/xml.dart';
 
-import 'package:html/parser.dart' as htmlparser;
-import 'package:html/dom.dart' as dom;
-
-class Parser {
+class XmlParser {
+  /// parse the raw response, unzip it and return xml ready to be parsed
   static GasStation toGasStation(final XmlNode xml) {
     final int id = int.parse(xml.getAttribute('id') ?? '0');
 
@@ -55,11 +53,5 @@ class Parser {
 
     return GasStation(id, LatLng(lat, lng), address, town, alwaysOpened,
         openingDays, pricedFuel);
-  }
-
-  static String toGasStationName(final String html) {
-    dom.Document document = htmlparser.parse(html);
-    dom.Element? e = document.querySelector('.colg p strong');
-    return e == null ? 'n/a' : document.querySelector('.colg p strong')!.text;
   }
 }

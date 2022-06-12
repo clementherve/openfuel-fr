@@ -4,6 +4,7 @@ import 'package:openfuelfr/src/model/fuel.dart';
 
 class GasStation {
   final int _id;
+  late String name;
   final LatLng _position;
   final String _address;
   final String _town;
@@ -30,7 +31,6 @@ class GasStation {
   List<Fuel> get fuels => _fuelPrices;
 
   /// return all fuel types
-  /// values in FuelType
   List<String> getAvailableFuelTypes() {
     return _fuelPrices.map((fuel) => fuel.type).toList();
   }
@@ -45,6 +45,7 @@ class GasStation {
   Map<String, dynamic> toJson() {
     return {
       'id': _id,
+      'name': name,
       'position': [
         _position.latitude,
         _position.longitude,

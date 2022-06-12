@@ -2,8 +2,11 @@ import 'package:openfuelfr/openfuelfr.dart';
 
 void main(List<String> args) async {
   final OpenFuelFR openFuelFR = OpenFuelFR();
-  final List<GasStation> gasStations = await openFuelFR.getInstantPrices();
-  final SearchGasStation search = SearchGasStation(gasStations);
+  final Map<int, GasStation> gasStations = await openFuelFR.getInstantPrices();
+  final SearchGasStation search = SearchGasStation();
+  search.setGasStations(gasStations);
+
+  await openFuelFR.getGasStationNames();
 
   GasStation cheapest = search.findCheapestInRange(
       LatLng(45.75892691993614, 4.8614875724645525),
@@ -11,8 +14,8 @@ void main(List<String> args) async {
       fuelType: FuelType.e10,
       lastUpdated: Duration(hours: 5),
       searchRadius: 10000);
-  final String name = await openFuelFR.getGasStationName(cheapest.id);
-  print(name);
+
+  print('name: ${cheapest.name}');
   for (var fuel in cheapest.fuels) {
     print('\t${fuel.type}: ${fuel.price}');
   }

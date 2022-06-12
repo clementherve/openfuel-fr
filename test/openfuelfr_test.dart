@@ -3,18 +3,19 @@ import 'package:test/test.dart';
 
 void main() async {
   final OpenFuelFR openFuelFR = OpenFuelFR();
-  List<GasStation> gasStations = [];
+  Map<int, GasStation> stations = {};
 
   setUp(() async {
-    gasStations = await openFuelFR.getInstantPrices();
+    stations = await openFuelFR.getInstantPrices();
   });
 
   test('has gas stations', () async {
-    expect(gasStations.length, greaterThan(1));
+    expect(stations.values.length, greaterThan(1));
   });
 
   test('search', () async {
-    final SearchGasStation search = SearchGasStation(gasStations);
+    final SearchGasStation search = SearchGasStation();
+    search.setGasStations(stations);
 
     List<int> ranges = [
       250,
@@ -30,13 +31,13 @@ void main() async {
 
     for (int i = 0; i < ranges.length; i++) {
       GasStation result = search.findCheapestInRange(
-          LatLng(45.76415682101847, 4.840621053489836),
-          fuelType: FuelType.e10,
-          searchRadius: ranges[i]);
-      String name = await openFuelFR.getGasStationName(result.id);
+        LatLng(45.76415682101847, 4.840621053489836),
+        fuelType: FuelType.e10,
+        searchRadius: ranges[i],
+      );
 
       print('range: ${ranges[i]}');
-      print('name: $name');
+      print('name: ${result.name}');
       print('address: ${result.address}');
       print('price: ${result.getFuelPriceByType(FuelType.e10)}');
     }

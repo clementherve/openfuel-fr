@@ -1,77 +1,59 @@
-import 'package:archive/archive.dart';
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/constant/endpoints.dart';
-import 'package:openfuelfr/src/utils/parser.dart';
+import 'package:openfuelfr/src/utils/xmlparser.dart';
 import 'package:xml/xml.dart';
+
+import 'utils/archiveparser.dart';
 
 class OpenFuelFR {
   late Dio _dio;
+  late Map<String, dynamic> _names = {};
 
-  OpenFuelFR() {
+  OpenFuelFR({Map<String, dynamic>? names}) {
     _dio = Dio(BaseOptions(connectTimeout: 1000 * 30, followRedirects: true));
+    _names = names ?? {};
   }
 
-  Future<String> getGasStationName(final int id) async {
-    final Response response = await _dio.get('${Endpoints.name}$id',
-        options: Options(
-          headers: {
-            "accept":
-                "text/javascript, text/html, application/xml, text/xml, */*",
-            "accept-language": "en-US,en;q=0.9",
-            "sec-ch-ua":
-                "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"98\", \"Google Chrome\";v=\"98\"",
-            "sec-ch-ua-mobile": "?0",
-            "sec-ch-ua-platform": "\"Linux\"",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            "x-prototype-version": "1.7",
-            "x-requested-with": "XMLHttpRequest",
-            "referrer": "https://www.prix-carburants.gouv.fr/",
-            "referrerPolicy": "same-origin",
-            "body": null,
-            "method": "GET",
-            "mode": "cors",
-            "credentials": "include"
-          },
-        ));
-    if ((response.statusCode ?? 400) >= 400) {
-      return '-';
-    }
-
-    return Parser.toGasStationName(response.data);
+  /// return the names of all gas stations, indexe by their id
+  Future<Map<String, dynamic>> getGasStationNames() async {
+    final Response response = await _dio.get(Endpoints.names);
+    if ((response.statusCode ?? 400) >= 400) return {};
+    return jsonDecode(response.data);
   }
 
-  // return a list of selling points with instant prices
-  Future<List<GasStation>> getInstantPrices() async {
+  String _getName(final int id) {
+    return _names[id.toString()]?['marque'] ?? '-';
+  }
+
+  /// return a list of selling points with instant prices
+  Future<Map<int, GasStation>> getInstantPrices() async {
+    // if no names were provided, we fetch them
+    if (_names.isEmpty) _names = await getGasStationNames();
+
+    // then we fetch the prices
     final Response response = await _dio.get(Endpoints.instant,
         options: Options(responseType: ResponseType.bytes));
 
-    if ((response.statusCode ?? 400) >= 400) {
-      return List<GasStation>.empty();
-    }
+    if ((response.statusCode ?? 400) >= 400) return {};
 
-    final Archive archive = ZipDecoder().decodeBytes(response.data);
-
-    if (archive.isEmpty) {
-      return List<GasStation>.empty();
-    }
-
-    final List<int> data = archive.first.content;
-
-    final XmlDocument xml =
-        XmlDocument.parse(String.fromCharCodes(data)); // beware: very slow!
-    if (xml.children.length < 2) {
-      return List<GasStation>.empty();
-    }
+    final XmlDocument xml = await ArchiveParser.toXML(response.data);
+    if (xml.children.length < 3) return {};
 
     return xml.children[2].children
-        .map((e) => Parser.toGasStation(e))
+        .map((xml) => XmlParser.toGasStation(xml))
         .where((station) => station.fuels.isNotEmpty && station.address != '-')
-        .toList();
+        .fold<Map<int, GasStation>>({}, (value, element) {
+      return {
+        ...value,
+        element.id: element..name = _getName(element.id),
+      };
+    });
   }
 
+  /// return a list of selling points with daily prices
   Future<List<GasStation>> getDailyPrices() async {
     throw Exception('not implemented');
   }
