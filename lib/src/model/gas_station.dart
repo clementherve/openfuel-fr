@@ -35,11 +35,15 @@ class GasStation {
     return _fuelPrices.map((fuel) => fuel.type).toList();
   }
 
-  double getFuelPriceByType(final String fuelType) {
-    return _fuelPrices
-        .firstWhere((fuel) => fuel.type == fuelType,
-            orElse: (() => Fuel.empty()))
-        .price;
+  double getFuelPriceByType(
+    final String fuelType, {
+    final double elseValue = double.infinity,
+  }) {
+    final Fuel fuel = _fuelPrices.firstWhere(
+      (fuel) => fuel.type == fuelType,
+      orElse: (() => Fuel.empty()),
+    );
+    return fuel.price == double.infinity ? elseValue : fuel.price;
   }
 
   Map<String, dynamic> toJson() {
