@@ -3,12 +3,9 @@ import 'package:openfuelfr/openfuelfr.dart';
 void main(List<String> args) async {
   final OpenFuelFR openFuelFR = OpenFuelFR();
   final Map<int, GasStation> gasStations = await openFuelFR.getInstantPrices();
-  final SearchGasStation search = SearchGasStation();
-  search.setGasStations(gasStations);
+  final SearchGasStation search = SearchGasStation.station(gasStations);
 
-  await openFuelFR.getGasStationNames();
-
-  GasStation cheapest = search.findCheapestInRange(
+  final GasStation cheapest = search.findCheapestInRange(
       LatLng(45.75892691993614, 4.8614875724645525),
       alwaysOpen: false,
       fuelType: FuelType.e10,

@@ -7,6 +7,10 @@ class SearchGasStation {
 
   SearchGasStation();
 
+  SearchGasStation.station(final Map<int, GasStation> stations) {
+    setGasStations(stations);
+  }
+
   void setGasStations(final Map<int, GasStation> stations) {
     _stations = stations;
   }

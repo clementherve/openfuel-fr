@@ -6,8 +6,8 @@ import 'package:openfuelfr/src/constant/endpoints.dart';
 import 'package:openfuelfr/src/model/fuel_price_statistics.dart';
 import 'package:openfuelfr/src/utils/xmlparser.dart';
 import 'package:xml/xml.dart';
-
 import 'utils/archiveparser.dart';
+import 'package:meta/meta.dart';
 
 class OpenFuelFR {
   late Dio _dio;
@@ -20,6 +20,7 @@ class OpenFuelFR {
   }
 
   /// return the names of all gas stations, indexe by their id
+  @visibleForTesting
   Future<Map<String, dynamic>> getGasStationNames() async {
     final Response response = await _dio.get(Endpoints.names);
     if ((response.statusCode ?? 400) >= 400) return {};

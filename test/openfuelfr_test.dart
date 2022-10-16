@@ -50,4 +50,8 @@ void main() async {
     expect(openFuelFR.getStatistics.e85, greaterThan(0));
     expect(openFuelFR.getStatistics.gazole, greaterThan(0));
   });
+
+  test('22160003 has name "Intermarché"', () async {
+    expect(stations[22160003]?.name, equals('Intermarché'));
+  });
 }
