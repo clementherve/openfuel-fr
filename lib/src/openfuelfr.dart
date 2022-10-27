@@ -1,30 +1,27 @@
 import 'dart:convert';
-
-import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/constant/endpoints.dart';
 import 'package:openfuelfr/src/model/fuel_price_statistics.dart';
 import 'package:openfuelfr/src/utils/xmlparser.dart';
+import 'package:requests/requests.dart';
 import 'package:xml/xml.dart';
 import 'utils/archiveparser.dart';
 import 'package:meta/meta.dart';
 
 class OpenFuelFR {
-  late Dio _dio;
   late Map<String, dynamic> _names = {};
   late FuelPriceStatistics _statistics = FuelPriceStatistics.zero();
 
   OpenFuelFR({Map<String, dynamic>? names}) {
-    _dio = Dio(BaseOptions(connectTimeout: 1000 * 30, followRedirects: true));
     _names = names ?? {};
   }
 
   /// return the names of all gas stations, indexe by their id
   @visibleForTesting
   Future<Map<String, dynamic>> getGasStationNames() async {
-    final Response response = await _dio.get(Endpoints.names);
-    if ((response.statusCode ?? 400) >= 400) return {};
-    return jsonDecode(response.data);
+    var response = await Requests.get(Endpoints.names);
+    if (response.statusCode >= 400) return {};
+    return jsonDecode(response.body);
   }
 
   String _getName(final int id) {
@@ -55,12 +52,11 @@ class OpenFuelFR {
     if (_names.isEmpty) _names = await getGasStationNames();
 
     // then we fetch the prices
-    final Response response = await _dio.get(Endpoints.instant,
-        options: Options(responseType: ResponseType.bytes));
+    var response = await Requests.get(Endpoints.instant);
 
     if ((response.statusCode ?? 400) >= 400) return {};
 
-    final XmlDocument xml = await ArchiveParser.toXML(response.data);
+    final XmlDocument xml = await ArchiveParser.toXML(response.bodyBytes);
     if (xml.children.length < 3) return {};
 
     final Map<int, GasStation> stations = xml.children[2].children
