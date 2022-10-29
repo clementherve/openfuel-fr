@@ -3,14 +3,14 @@ import 'package:openfuelfr/src/model/opening_days.dart';
 import 'package:openfuelfr/src/model/fuel.dart';
 
 class GasStation {
-  final int _id;
+  late int _id;
   late String name;
-  final LatLng _position;
-  final String _address;
-  final String _town;
-  final bool _isAlwaysOpen;
-  final List<OpeningDays> _openingDays;
-  final List<Fuel> _fuelPrices;
+  late LatLng _position;
+  late String _address;
+  late String _town;
+  late bool _isAlwaysOpen;
+  late List<OpeningDays> _openingDays;
+  late List<Fuel> _fuelPrices;
 
   GasStation(
     this._id,
@@ -21,6 +21,21 @@ class GasStation {
     this._openingDays,
     this._fuelPrices,
   );
+
+  GasStation.fromJSON(Map<String, dynamic> json) {
+    _id = json['id'];
+    name = json['name'];
+    _position = LatLng(
+      json['position'][0],
+      json['position'][1],
+    );
+    _address = json['address'];
+    _town = json['town'];
+    _isAlwaysOpen = json['is_always_open'];
+    _fuelPrices = json['prices'].map((priceJson) => Fuel.fromJSON(priceJson));
+    _openingDays =
+        json['opening_days'].map((dayJson) => OpeningDays.fromJSON(dayJson));
+  }
 
   int get id => _id;
   LatLng get position => _position;

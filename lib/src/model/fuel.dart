@@ -10,6 +10,12 @@ class Fuel {
     _price = double.infinity;
   }
 
+  Fuel.fromJSON(Map<String, dynamic> json) {
+    _fuelType = json['fuel_type'];
+    _lastUpdated = json['last_updated'];
+    _price = json['price'];
+  }
+
   String get type => _fuelType;
   DateTime get lastUpdated => _lastUpdated;
   bool get isFresh => DateTime.now().difference(_lastUpdated).inDays < 2;

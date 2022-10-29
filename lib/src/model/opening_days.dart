@@ -1,11 +1,19 @@
 import 'package:openfuelfr/src/model/opening_hours.dart';
 
 class OpeningDays {
-  final String _day;
-  final bool _isOpen;
-  final OpeningHours _openingHours;
+  late String _day;
+  late bool _isOpen;
+  late OpeningHours _openingHours;
 
   OpeningDays(this._day, this._isOpen, this._openingHours);
+
+  OpeningDays.fromJSON(Map<String, dynamic> json) {
+    _day = json['day'];
+    _isOpen = json['is_open'];
+    _openingHours = json['opening_hours'].map(
+      (hour) => OpeningHours.fromJSON(hour),
+    );
+  }
 
   String get day => _day;
   bool get isOpen => _isOpen;
