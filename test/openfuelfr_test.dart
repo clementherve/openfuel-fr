@@ -1,12 +1,16 @@
+import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
+import 'package:openfuelfr/src/service/gas_station_name_service.dart';
+import 'package:openfuelfr/src/service/price_statistics_service.dart';
 import 'package:test/test.dart';
 
 void main() async {
-  final OpenFuelFR openFuelFR = OpenFuelFR();
+  final dio = Dio();
+  final OpenFuelFrService openFuelFR = OpenFuelFrService(GasStationNameService(dio), PriceStatisticsService(), dio);
   Map<int, GasStation> stations = {};
 
   setUp(() async {
-    stations = await openFuelFR.getInstantPrices();
+    stations = await openFuelFR.fetchInstantPrices();
   });
 
   test('has gas stations', () async {
@@ -43,12 +47,17 @@ void main() async {
         print('price: ${result.getFuelPriceByType(FuelType.e10)}');
       }, returnsNormally);
     }
-  });
+  }, timeout: Timeout(Duration(minutes: 1)));
 
-  test('compute statistics', () async {
-    expect(openFuelFR.getStatistics.e10, greaterThan(0));
-    expect(openFuelFR.getStatistics.e85, greaterThan(0));
-    expect(openFuelFR.getStatistics.gazole, greaterThan(0));
+  test('get statistics', () async {
+    expect(openFuelFR.statistics.e10, greaterThan(0));
+    expect(openFuelFR.statistics.e10, lessThan(2.5)); // for now...
+
+    expect(openFuelFR.statistics.e85, greaterThan(0));
+    expect(openFuelFR.statistics.e85, lessThan(2.5));
+
+    expect(openFuelFR.statistics.gazole, greaterThan(0));
+    expect(openFuelFR.statistics.gazole, lessThan(2.5));
   });
 
   test('22160003 has name "Intermarché"', () async {

@@ -1,6 +1,5 @@
-import 'package:maps_toolkit/maps_toolkit.dart';
-import 'package:openfuelfr/src/model/opening_days.dart';
-import 'package:openfuelfr/src/model/fuel.dart';
+import 'package:openfuelfr/openfuelfr.dart';
+import 'package:xml/xml.dart';
 
 class GasStation {
   late int _id;
@@ -9,7 +8,7 @@ class GasStation {
   late String _address;
   late String _town;
   late bool _isAlwaysOpen;
-  late List<OpeningDays> _openingDays;
+  late List<OpenDay> _openDays;
   late List<Fuel> _fuelPrices;
 
   GasStation(
@@ -18,7 +17,7 @@ class GasStation {
     this._address,
     this._town,
     this._isAlwaysOpen,
-    this._openingDays,
+    this._openDays,
     this._fuelPrices,
   );
 
@@ -33,8 +32,44 @@ class GasStation {
     _town = json['town'];
     _isAlwaysOpen = json['is_always_open'];
     _fuelPrices = json['prices'].map((priceJson) => Fuel.fromJSON(priceJson));
-    _openingDays =
-        json['opening_days'].map((dayJson) => OpeningDays.fromJSON(dayJson));
+    _openDays = json['open_days'].map((dayJson) => OpenDay.fromJSON(dayJson));
+  }
+
+  GasStation.fromXML(final XmlNode xml) {
+    _id = int.parse(xml.getAttribute('id') ?? '0');
+
+    _address = xml.getElement('adresse')?.innerText ?? '-';
+    _town = xml.getElement('ville')?.innerText ?? '-';
+
+    // see Q4 https://www.prix-carburants.gouv.fr/rubrique/opendata/
+    _position = LatLng(double.parse(xml.getAttribute('latitude') ?? '0.0') / 100000, double.parse(xml.getAttribute('longitude') ?? '0.0') / 100000);
+
+    _fuelPrices = xml.findAllElements('prix').map((e) {
+      final String name = e.getAttribute('nom') ?? '-';
+      final DateTime lastUpdated = DateTime.parse(e.getAttribute('maj') ?? '19700101');
+      double price = double.parse(e.getAttribute('valeur') ?? '0.0');
+
+      if (price > 500) {
+        // pas pour les flux instantanés...
+        price = price / 1000; // 	Prix en euros multiplié par 1000
+      }
+
+      return Fuel(name, lastUpdated, price);
+    }).toList();
+
+    _isAlwaysOpen = xml.getElement('horaires')?.getAttribute('automate-24-24') == '1';
+
+    _openDays = xml.findAllElements('jour').map((e) {
+      final String name = e.getAttribute('nom') ?? '-';
+      final bool isOpen = e.getAttribute('ferme') == '';
+
+      final String openingHour = e.getElement('horaire')?.getAttribute('ouverture') ?? (_isAlwaysOpen ? '00.00' : '-');
+      final String closingHour = e.getElement('horaire')?.getAttribute('fermeture') ?? (_isAlwaysOpen ? '23.59' : '-');
+
+      final OpeningHours openingHours = OpeningHours(openingHour, closingHour);
+
+      return OpenDay(name, isOpen, openingHours);
+    }).toList();
   }
 
   int get id => _id;
@@ -42,7 +77,7 @@ class GasStation {
   String get address => _address;
   String get town => _town;
   bool get isAlwaysOpen => _isAlwaysOpen;
-  List<OpeningDays> get openingDays => _openingDays;
+  List<OpenDay> get openingDay => _openDays;
   List<Fuel> get fuels => _fuelPrices;
 
   /// return all fuel types
@@ -73,7 +108,7 @@ class GasStation {
       'town': _town,
       'is_always_open': _isAlwaysOpen,
       'prices': _fuelPrices.map((e) => e.toJson()).toList(),
-      'opening_days': _openingDays.map((e) => e.toJson()).toList()
+      'open_days': _openDays.map((e) => e.toJson()).toList()
     };
   }
 }

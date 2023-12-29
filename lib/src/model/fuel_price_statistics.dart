@@ -1,5 +1,3 @@
-import 'package:openfuelfr/openfuelfr.dart';
-
 class FuelPriceStatistics {
   late double gazole;
   late double sp95;

@@ -1,5 +1,6 @@
 import 'package:maps_toolkit/maps_toolkit.dart';
 import 'package:openfuelfr/openfuelfr.dart';
+import 'package:openfuelfr/src/exception/no_station_found.dart';
 
 class SearchGasStation {
   late Map<int, GasStation> _stations = {};
@@ -20,9 +21,9 @@ class SearchGasStation {
 
   Map<int, GasStation> allStations() => _stations;
 
-  /// return
-  /// the distance if none of the args are null
-  /// 0 if one of the arguments are null
+  /// return:
+  /// - the distance if none of the args are null
+  /// - 0 if one of the arguments are null
   static double _distance(final LatLng position, final LatLng? center) {
     if (position.latitude == 0 || position.longitude == 0 || center == null) {
       return double.infinity;
@@ -30,7 +31,7 @@ class SearchGasStation {
     return SphericalUtil.computeDistanceBetween(center, position).toDouble();
   }
 
-  /// return the distance between each gas station and the given position
+  /// return: the distance between each gas station and the given position
   Map<int, double> computeAllDistances(
     LatLng center,
     List<GasStation> stations,
@@ -90,7 +91,9 @@ class SearchGasStation {
       lastUpdated: lastUpdated,
     );
 
-    if (prefilter.isEmpty) throw Exception('Aucune station trouvée !');
+    if (prefilter.isEmpty) {
+      throw NoStationFoundException();
+    }
 
     if (constrainingIds != null) {
       final List<GasStation> tmp = prefilter
@@ -106,7 +109,9 @@ class SearchGasStation {
       prefilter = tmp.isNotEmpty ? tmp : prefilter;
     }
 
-    if (prefilter.isEmpty) throw Exception('Aucune station trouvée !');
+    if (prefilter.isEmpty) {
+      throw NoStationFoundException();
+    }
 
     if (distance(prefilter.first.id) > searchRadius) {
       // the closest gas station is outside of the search radius

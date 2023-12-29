@@ -10,7 +10,7 @@ Un client Dart pour récupérer les prix des carburants en France, depuis les do
   String address;
   String town;
   bool isAlwaysOpen;
-  List<OpeningDays> openingDays;
+  List<OpeningDay> OpeningDay;
   List<Fuel> fuelPrices;
 ```
 
@@ -26,8 +26,9 @@ Un client Dart pour récupérer les prix des carburants en France, depuis les do
 
 ```dart
   // get prices and parse them
-  final OpenFuelFR openFuelFR = OpenFuelFR();
-  final List<GasStation> gasStations = await openFuelFR.getInstantPrices();
+  final dio = Dio();
+  final OpenFuelFrService openFuelFR = OpenFuelFrService(GasStationNameService(dio), PriceStatisticsService(), dio);
+  final List<GasStation> gasStations = await openFuelFR.fetchInstantPrices();
 
   // other search types are available
   final SearchGasStation search = SearchGasStation(gasStations);
