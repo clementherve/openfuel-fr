@@ -1,7 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/service/gas_station_name_service.dart';
-import 'package:openfuelfr/src/service/price_statistics_service.dart';
 import 'package:test/test.dart';
 
 void main() async {
