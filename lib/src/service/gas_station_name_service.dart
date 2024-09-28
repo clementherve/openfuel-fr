@@ -13,12 +13,12 @@ class GasStationNameService {
 
   Map<String, dynamic> get names => _names;
 
-  String getName(final int stationId) {
+  String getNameById(final int stationId) {
     return _names[stationId.toString()]?['marque'] ?? '-';
   }
 
   // return the names of all gas stations, indexe by their id
-  Future<Map<String, dynamic>> fetchGasStationNames() async {
+  Future<Map<String, dynamic>> getNames() async {
     var response = await _dio.get(Endpoints.names);
 
     if ((response.statusCode ?? 400) >= 400) {

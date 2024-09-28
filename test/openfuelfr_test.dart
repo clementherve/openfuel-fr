@@ -1,14 +1,12 @@
-import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:test/test.dart';
 
 void main() async {
-  final dio = Dio();
-  final OpenFuelFrService openFuelFR = OpenFuelFrService(GasStationNameService(dio), PriceStatisticsService(), dio);
+  final OpenFuelService openFuelService = OpenFuelService();
   Map<int, GasStation> stations = {};
 
   setUp(() async {
-    stations = await openFuelFR.fetchInstantPrices();
+    stations = await openFuelService.getCurrentPrices();
   });
 
   test('has gas stations', () async {
@@ -48,14 +46,14 @@ void main() async {
   }, timeout: Timeout(Duration(minutes: 1)));
 
   test('get statistics', () async {
-    expect(openFuelFR.statistics.e10, greaterThan(0));
-    expect(openFuelFR.statistics.e10, lessThan(2.5)); // for now...
+    expect(openFuelService.statistics.e10, greaterThan(0));
+    expect(openFuelService.statistics.e10, lessThan(2.5)); // for now...
 
-    expect(openFuelFR.statistics.e85, greaterThan(0));
-    expect(openFuelFR.statistics.e85, lessThan(2.5));
+    expect(openFuelService.statistics.e85, greaterThan(0));
+    expect(openFuelService.statistics.e85, lessThan(2.5));
 
-    expect(openFuelFR.statistics.gazole, greaterThan(0));
-    expect(openFuelFR.statistics.gazole, lessThan(2.5));
+    expect(openFuelService.statistics.gazole, greaterThan(0));
+    expect(openFuelService.statistics.gazole, lessThan(2.5));
   });
 
   test('22160003 has name "Intermarché"', () async {
