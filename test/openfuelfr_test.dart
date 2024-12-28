@@ -1,4 +1,5 @@
 import 'package:openfuelfr/openfuelfr.dart';
+import 'package:openfuelfr/src/model/search-gas-station.model.dart';
 import 'package:test/test.dart';
 
 void main() async {
@@ -14,9 +15,6 @@ void main() async {
   });
 
   test('search within a radius', () async {
-    final SearchGasStation search = SearchGasStation();
-    search.setGasStations(stations);
-
     List<int> ranges = [
       250,
       500,
@@ -31,11 +29,12 @@ void main() async {
 
     for (int i = 0; i < ranges.length; i++) {
       expect(() {
-        GasStation result = search.findCheapestInRange(
-          LatLng(45.76415682101847, 4.840621053489836),
+        var query = SearchGasStation(
+          location: LatLng(45.76415682101847, 4.840621053489836),
+          searchRadiusMeters: ranges[i],
           fuelType: FuelType.e10,
-          searchRadius: ranges[i],
         );
+        GasStation result = openFuelService.findBestGasStation(query);
 
         print('range: ${ranges[i]}');
         print('name: ${result.name}');
@@ -44,17 +43,6 @@ void main() async {
       }, returnsNormally);
     }
   }, timeout: Timeout(Duration(minutes: 1)));
-
-  test('get statistics', () async {
-    expect(openFuelService.statistics.e10, greaterThan(0));
-    expect(openFuelService.statistics.e10, lessThan(2.5)); // for now...
-
-    expect(openFuelService.statistics.e85, greaterThan(0));
-    expect(openFuelService.statistics.e85, lessThan(2.5));
-
-    expect(openFuelService.statistics.gazole, greaterThan(0));
-    expect(openFuelService.statistics.gazole, lessThan(2.5));
-  });
 
   test('22160003 has name "Intermarché"', () async {
     expect(stations[22160003]?.name, equals('Intermarché'));

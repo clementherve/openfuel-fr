@@ -9,7 +9,7 @@ class GasStation {
   late String _town;
   late bool _isAlwaysOpen;
   late List<OpenDay> _openDays;
-  late List<Fuel> _fuelPrices;
+  late List<FuelPrice> _fuelPrices;
 
   GasStation(
     this._id,
@@ -31,7 +31,7 @@ class GasStation {
     _address = json['address'];
     _town = json['town'];
     _isAlwaysOpen = json['is_always_open'];
-    _fuelPrices = json['prices'].map((priceJson) => Fuel.fromJSON(priceJson));
+    _fuelPrices = json['prices'].map((priceJson) => FuelPrice.fromJSON(priceJson));
     _openDays = json['open_days'].map((dayJson) => OpenDay.fromJSON(dayJson));
   }
 
@@ -54,7 +54,7 @@ class GasStation {
         price = price / 1000; // 	Prix en euros multiplié par 1000
       }
 
-      return Fuel(name, lastUpdated, price);
+      return FuelPrice(name, lastUpdated, price);
     }).toList();
 
     _isAlwaysOpen = xml.getElement('horaires')?.getAttribute('automate-24-24') == '1';
@@ -78,7 +78,7 @@ class GasStation {
   String get town => _town;
   bool get isAlwaysOpen => _isAlwaysOpen;
   List<OpenDay> get openingDay => _openDays;
-  List<Fuel> get fuels => _fuelPrices;
+  List<FuelPrice> get fuels => _fuelPrices;
 
   /// return all fuel types
   List<String> getAvailableFuelTypes() {
@@ -89,9 +89,9 @@ class GasStation {
     final String fuelType, {
     final double elseValue = double.infinity,
   }) {
-    final Fuel fuel = _fuelPrices.firstWhere(
+    final FuelPrice fuel = _fuelPrices.firstWhere(
       (fuel) => fuel.type == fuelType,
-      orElse: (() => Fuel.empty()),
+      orElse: (() => FuelPrice.empty()),
     );
     return fuel.price == double.infinity ? elseValue : fuel.price;
   }

@@ -1,20 +1,18 @@
 import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/constant/endpoints.dart';
-import 'package:openfuelfr/src/model/fuel_price_statistics.dart';
+import 'package:openfuelfr/src/exception/http.exception.dart';
 import 'package:openfuelfr/src/utils/archive_utils.dart';
 import 'package:xml/xml.dart';
 
-class OpenFuelFrService {
-  final GasStationNameService _gasStationNameService;
-  final PriceStatisticsService _priceStatisticsService;
+class GetGasStationPricesService {
+  final GetGasStationNamesService _gasStationNameService;
   final Dio _dio;
   late Map<int, GasStation> _currentPrices = {};
 
-  FuelPriceStatistics get statistics => _priceStatisticsService.globalStatistics;
   Map<int, GasStation> get currentPrices => _currentPrices;
 
-  OpenFuelFrService(this._gasStationNameService, this._priceStatisticsService, this._dio);
+  GetGasStationPricesService(this._gasStationNameService, this._dio);
 
   /// return a list of selling points with instant prices
   Future<Map<int, GasStation>> getCurrentPrices() async {
@@ -27,7 +25,7 @@ class OpenFuelFrService {
     var response = await _dio.get(Endpoints.instant, options: Options(responseType: ResponseType.bytes));
 
     if ((response.statusCode ?? 400) >= 400) {
-      return {};
+      throw HttpException(response.statusMessage, response.statusCode);
     }
 
     final XmlDocument xml = await ArchiveUtils.toXML(response.data);
@@ -44,8 +42,6 @@ class OpenFuelFrService {
         element.id: element..name = _gasStationNameService.getNameById(element.id),
       };
     });
-
-    _priceStatisticsService.computeGlobalStatistics(_currentPrices.values.toList());
 
     return _currentPrices;
   }

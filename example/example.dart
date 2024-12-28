@@ -1,12 +1,18 @@
 import 'package:openfuelfr/openfuelfr.dart';
+import 'package:openfuelfr/src/model/search-gas-station.model.dart';
 
 void main(List<String> args) async {
   final OpenFuelService openFuelService = OpenFuelService();
-  final Map<int, GasStation> gasStations = await openFuelService.getCurrentPrices();
-  final SearchGasStation search = SearchGasStation.station(gasStations);
 
-  final GasStation cheapest = search.findCheapestInRange(LatLng(45.75892691993614, 4.8614875724645525),
-      alwaysOpen: false, fuelType: FuelType.e10, lastUpdated: Duration(hours: 5), searchRadius: 10000);
+  final GasStation cheapest = openFuelService.findBestGasStation(
+    SearchGasStation(
+      location: LatLng(45.75892691993614, 4.8614875724645525),
+      searchRadiusMeters: 10000,
+      lastUpdatedDays: Duration(hours: 5),
+      alwaysOpen: false,
+      fuelType: FuelType.e10,
+    ),
+  );
 
   print('name: ${cheapest.name}');
   for (var fuel in cheapest.fuels) {

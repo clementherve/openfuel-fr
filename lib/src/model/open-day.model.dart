@@ -1,4 +1,4 @@
-import 'package:openfuelfr/src/model/opening_hours.dart';
+import 'package:openfuelfr/src/model/opening-hours.model.dart';
 
 class OpenDay {
   late String _day;

@@ -1,11 +1,11 @@
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/model/fuel_price_statistics.dart';
+import 'package:openfuelfr/src/model/fuel-price-statistics.model.dart';
 
 class PriceStatisticsService {
   late FuelPriceStatistics _globalStatistics = FuelPriceStatistics.zero();
 
-  void computeGlobalStatistics(final List<GasStation> stations) {
-    _globalStatistics = stations.fold<FuelPriceStatistics>(FuelPriceStatistics.zero(), (prev, station) {
+  void computeGlobalStatistics(final Map<int, GasStation> stations) {
+    _globalStatistics = stations.values.fold<FuelPriceStatistics>(FuelPriceStatistics.zero(), (prev, station) {
       return FuelPriceStatistics(
         e10: prev.e10 + station.getFuelPriceByType(FuelType.e10, elseValue: 0),
         gazole: prev.gazole + station.getFuelPriceByType(FuelType.gazole, elseValue: 0),

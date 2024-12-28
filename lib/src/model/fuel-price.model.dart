@@ -1,16 +1,16 @@
-class Fuel {
+class FuelPrice {
   late String _fuelType;
   late DateTime _lastUpdated;
   late double _price;
-  Fuel(this._fuelType, this._lastUpdated, this._price);
+  FuelPrice(this._fuelType, this._lastUpdated, this._price);
 
-  Fuel.empty() {
+  FuelPrice.empty() {
     _fuelType = '-';
     _lastUpdated = DateTime.parse('19700101');
     _price = double.infinity;
   }
 
-  Fuel.fromJSON(Map<String, dynamic> json) {
+  FuelPrice.fromJSON(Map<String, dynamic> json) {
     _fuelType = json['fuel_type'];
     _lastUpdated = json['last_updated'];
     _price = json['price'];
@@ -22,10 +22,6 @@ class Fuel {
   double get price => _price;
 
   Map<String, dynamic> toJson() {
-    return {
-      'fuel_type': type,
-      'last_updated': lastUpdated.toString(),
-      'price': price
-    };
+    return {'fuel_type': type, 'last_updated': lastUpdated.toString(), 'price': price};
   }
 }
