@@ -10,8 +10,9 @@ export 'src/model/fuel-price.model.dart' show FuelPrice;
 export 'src/model/gas-station.model.dart' show GasStation;
 export 'src/model/open-day.model.dart' show OpenDay;
 export 'src/model/opening-hours.model.dart' show OpeningHours;
-export 'src/service/price-statistics.service.dart' show PriceStatisticsService;
+export 'src/model/search-gas-station.model.dart' show SearchGasStation;
 export 'src/service/get-gas-station-names.service.dart';
+export 'src/service/price-statistics.service.dart' show PriceStatisticsService;
 export 'src/service/search-gas-stations.service.dart' show SearchGasStationService;
 
 class OpenFuelService {
