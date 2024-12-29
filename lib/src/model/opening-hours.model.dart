@@ -3,7 +3,7 @@ class OpeningHours {
   late String _closingHour;
   OpeningHours(this._openingHour, this._closingHour);
 
-  OpeningHours.fromJSON(Map<String, dynamic> json) {
+  OpeningHours.fromJson(Map<String, dynamic> json) {
     _openingHour = json['opening_hour'];
     _closingHour = json['closing_hour'];
   }

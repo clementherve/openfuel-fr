@@ -10,10 +10,10 @@ class FuelPrice {
     _price = double.infinity;
   }
 
-  FuelPrice.fromJSON(Map<String, dynamic> json) {
+  FuelPrice.fromJson(Map<String, dynamic> json) {
     _fuelType = json['fuel_type'];
-    _lastUpdated = json['last_updated'];
-    _price = json['price'];
+    _lastUpdated = DateTime.parse(json['last_updated']);
+    _price = json['price'] ?? 0;
   }
 
   String get type => _fuelType;

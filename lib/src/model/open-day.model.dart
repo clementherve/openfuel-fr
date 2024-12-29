@@ -7,12 +7,10 @@ class OpenDay {
 
   OpenDay(this._day, this._isOpen, this._openingHours);
 
-  OpenDay.fromJSON(Map<String, dynamic> json) {
+  OpenDay.fromJson(Map<String, dynamic> json) {
     _day = json['day'];
     _isOpen = json['is_open'];
-    _openingHours = json['opening_hours'].map(
-      (hour) => OpeningHours.fromJSON(hour),
-    );
+    _openingHours = OpeningHours.fromJson(json['opening_hours']);
   }
 
   String get day => _day;
@@ -20,10 +18,6 @@ class OpenDay {
   OpeningHours get openingHours => _openingHours;
 
   Map<String, dynamic> toJson() {
-    return {
-      'day': _day,
-      'is_open': _isOpen,
-      'opening_hours': [_openingHours.toJson()]
-    };
+    return {'day': _day, 'is_open': _isOpen, 'opening_hours': _openingHours.toJson()};
   }
 }

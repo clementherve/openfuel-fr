@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/model/search-gas-station.model.dart';
 import 'package:test/test.dart';
@@ -46,5 +48,12 @@ void main() async {
 
   test('22160003 has name "Intermarché"', () async {
     expect(stations[22160003]?.name, equals('Intermarché'));
+  });
+
+  test('serialize and deserialize', () {
+    List<String> stationsSerialized = stations.values.map((e) => jsonEncode(e.toJson())).toList();
+    List<GasStation> stationsDeserialized = stationsSerialized.map((e) => GasStation.fromJson(jsonDecode(e))).toList();
+    expect(stationsDeserialized.length, equals(stations.length));
+    expect(stationsDeserialized[0].id, stations.values.first.id);
   });
 }

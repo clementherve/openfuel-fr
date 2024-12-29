@@ -21,7 +21,7 @@ class GasStation {
     this._fuelPrices,
   );
 
-  GasStation.fromJSON(Map<String, dynamic> json) {
+  GasStation.fromJson(Map<String, dynamic> json) {
     _id = json['id'];
     name = json['name'];
     _position = LatLng(
@@ -31,8 +31,8 @@ class GasStation {
     _address = json['address'];
     _town = json['town'];
     _isAlwaysOpen = json['is_always_open'];
-    _fuelPrices = json['prices'].map((priceJson) => FuelPrice.fromJSON(priceJson));
-    _openDays = json['open_days'].map((dayJson) => OpenDay.fromJSON(dayJson));
+    _fuelPrices = json['prices'].map<FuelPrice>((priceJson) => FuelPrice.fromJson(priceJson)).toList();
+    _openDays = json['open_days'].map<OpenDay>((dayJson) => OpenDay.fromJson(dayJson)).toList();
   }
 
   GasStation.fromXML(final XmlNode xml) {
