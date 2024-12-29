@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/model/search-gas-station.model.dart';
 import 'package:test/test.dart';
 
 void main() async {
@@ -36,7 +35,7 @@ void main() async {
           searchRadiusMeters: ranges[i],
           fuelType: FuelType.e10,
         );
-        GasStation result = openFuelService.findBestGasStation(query);
+        GasStation result = openFuelService.findBestGasStation(stations, query);
 
         print('range: ${ranges[i]}');
         print('name: ${result.name}');

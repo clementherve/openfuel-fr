@@ -1,10 +1,10 @@
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/model/search-gas-station.model.dart';
 
 void main(List<String> args) async {
   final OpenFuelService openFuelService = OpenFuelService();
 
   final GasStation cheapest = openFuelService.findBestGasStation(
+    openFuelService.getCurrentPrices(),
     SearchGasStation(
       location: LatLng(45.75892691993614, 4.8614875724645525),
       searchRadiusMeters: 10000,

@@ -37,7 +37,8 @@ class OpenFuelService {
     return gasStationPrices;
   }
 
-  GasStation findBestGasStation(searchGasSationDto) {
+  GasStation findBestGasStation(gasStationsPrices, searchGasSationDto) {
+    _searchGasStationService.setGasStations(gasStationsPrices);
     return _searchGasStationService.findCheapestInRange(searchGasSationDto);
   }
 
