@@ -1,12 +1,12 @@
 import 'package:openfuelfr/openfuelfr.dart';
 
 class SearchGasStation {
-  LatLng location;
-  int searchRadiusMeters;
-  String fuelType;
-  bool alwaysOpen;
-  List<int> constrainingIds;
-  Duration lastUpdatedDays;
+  late LatLng location;
+  late int searchRadiusMeters;
+  late String fuelType;
+  late bool alwaysOpen;
+  late List<int> constrainingIds;
+  late Duration lastUpdatedDays;
 
   SearchGasStation({
     required this.location,
@@ -17,7 +17,7 @@ class SearchGasStation {
     this.lastUpdatedDays = const Duration(days: 1),
   });
 
-  fromJson(Map<String, dynamic> json) {
+  SearchGasStation.fromJson(Map<String, dynamic> json) {
     location = LatLng(json['location']['lat'], json['location']['lng']);
     searchRadiusMeters = json['search_radius_meters'];
     fuelType = json['fuel_type'];
