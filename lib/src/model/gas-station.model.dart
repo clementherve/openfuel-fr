@@ -6,7 +6,7 @@ class GasStation {
   late String name;
   late LatLng _position;
   late String _address;
-  late String _town;
+  late String _city;
   late bool _isAlwaysOpen;
   late List<OpenDay> _openDays;
   late List<FuelPrice> _fuelPrices;
@@ -15,7 +15,7 @@ class GasStation {
     this._id,
     this._position,
     this._address,
-    this._town,
+    this._city,
     this._isAlwaysOpen,
     this._openDays,
     this._fuelPrices,
@@ -29,7 +29,7 @@ class GasStation {
       json['position'][1],
     );
     _address = json['address'];
-    _town = json['town'];
+    _city = json['city'];
     _isAlwaysOpen = json['is_always_open'];
     _fuelPrices = json['prices'].map<FuelPrice>((priceJson) => FuelPrice.fromJson(priceJson)).toList();
     _openDays = json['open_days'].map<OpenDay>((dayJson) => OpenDay.fromJson(dayJson)).toList();
@@ -39,7 +39,7 @@ class GasStation {
     _id = int.parse(xml.getAttribute('id') ?? '0');
 
     _address = xml.getElement('adresse')?.innerText ?? '-';
-    _town = xml.getElement('ville')?.innerText ?? '-';
+    _city = xml.getElement('ville')?.innerText ?? '-';
 
     // see Q4 https://www.prix-carburants.gouv.fr/rubrique/opendata/
     _position = LatLng(double.parse(xml.getAttribute('latitude') ?? '0.0') / 100000, double.parse(xml.getAttribute('longitude') ?? '0.0') / 100000);
@@ -75,10 +75,10 @@ class GasStation {
   int get id => _id;
   LatLng get position => _position;
   String get address => _address;
-  String get town => _town;
+  String get city => _city;
   bool get isAlwaysOpen => _isAlwaysOpen;
-  List<OpenDay> get openingDay => _openDays;
-  List<FuelPrice> get fuels => _fuelPrices;
+  List<OpenDay> get openDays => _openDays;
+  List<FuelPrice> get fuelPrices => _fuelPrices;
 
   /// return all fuel types
   List<String> getAvailableFuelTypes() {
@@ -105,7 +105,7 @@ class GasStation {
         _position.longitude,
       ],
       'address': _address,
-      'town': _town,
+      'city': _city,
       'is_always_open': _isAlwaysOpen,
       'prices': _fuelPrices.map((e) => e.toJson()).toList(),
       'open_days': _openDays.map((e) => e.toJson()).toList()

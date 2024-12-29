@@ -35,7 +35,7 @@ class GetGasStationPricesService {
 
     _currentPrices = xml.children[2].children
         .map((xml) => GasStation.fromXML(xml))
-        .where((station) => station.fuels.isNotEmpty && station.address != '-')
+        .where((station) => station.fuelPrices.isNotEmpty && station.address != '-')
         .fold<Map<int, GasStation>>({}, (value, element) {
       return {
         ...value,

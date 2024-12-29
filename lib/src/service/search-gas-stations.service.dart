@@ -59,8 +59,9 @@ class SearchGasStationService {
     final List<GasStation> filtered = _stations.values.where((gs) {
       final bool hasFuelCategory = (fuelType == null) ? true : gs.getAvailableFuelTypes().contains(fuelType);
 
-      final bool isFresh =
-          (hasFuelCategory) ? DateTime.now().difference(gs.fuels.firstWhere((fuel) => fuel.type == fuelType).lastUpdated) < lastUpdatedDays : false;
+      final bool isFresh = (hasFuelCategory)
+          ? DateTime.now().difference(gs.fuelPrices.firstWhere((fuel) => fuel.type == fuelType).lastUpdated) < lastUpdatedDays
+          : false;
 
       return hasFuelCategory && isFresh;
     }).toList();

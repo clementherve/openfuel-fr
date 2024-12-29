@@ -15,7 +15,7 @@ void main(List<String> args) async {
   );
 
   print('name: ${cheapest.name}');
-  for (var fuel in cheapest.fuels) {
+  for (var fuel in cheapest.fuelPrices) {
     print('\t${fuel.type}: ${fuel.price}');
   }
 }
