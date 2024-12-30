@@ -22,7 +22,7 @@ class SearchGasStation {
     searchRadiusMeters = json['search_radius_meters'];
     fuelType = json['fuel_type'];
     alwaysOpen = json['always_open'];
-    constrainingIds = json['constraining_ids'];
+    constrainingIds = List<int>.from(json['constraining_ids']);
     lastUpdatedDays = Duration(days: json['last_updated_days']);
   }
 

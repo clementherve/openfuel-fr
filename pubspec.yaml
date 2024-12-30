@@ -1,6 +1,6 @@
 name: openfuelfr
 description: A client for https://www.prix-carburants.gouv.fr/rubrique/opendata/
-version: 2.0.6
+version: 2.0.7
 
 environment:
   sdk: ">=2.16.1"

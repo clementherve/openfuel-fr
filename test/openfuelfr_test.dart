@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:test/test.dart';
@@ -49,10 +50,23 @@ void main() async {
     expect(stations[22160003]?.name, equals('Intermarché'));
   });
 
-  test('serialize and deserialize', () {
+  test('serialize and deserialize stations', () {
     List<String> stationsSerialized = stations.values.map((e) => jsonEncode(e.toJson())).toList();
     List<GasStation> stationsDeserialized = stationsSerialized.map((e) => GasStation.fromJson(jsonDecode(e))).toList();
     expect(stationsDeserialized.length, equals(stations.length));
     expect(stationsDeserialized[0].id, stations.values.first.id);
+  });
+
+  test('serialize and deserialize search', () {
+    var query = SearchGasStation(
+      location: LatLng(45.76415682101847, 4.840621053489836),
+      searchRadiusMeters: 1000,
+      fuelType: FuelType.e10,
+    );
+    var queryUnserialized = SearchGasStation.fromJson(query.toJson());
+    expect(queryUnserialized.location.latitude, equals(query.location.latitude));
+    expect(queryUnserialized.location.longitude, equals(query.location.longitude));
+    expect(queryUnserialized.searchRadiusMeters, equals(query.searchRadiusMeters));
+    expect(queryUnserialized.fuelType, equals(query.fuelType));
   });
 }
