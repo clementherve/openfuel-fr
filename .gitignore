@@ -8,3 +8,9 @@ build/
 # misc
 .vscode/
 .env
+
+# IDE files
+*.iml
+*.ipr
+*.iws
+.idea/
