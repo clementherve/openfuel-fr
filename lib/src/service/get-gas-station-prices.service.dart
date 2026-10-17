@@ -1,47 +1,52 @@
 import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/constant/endpoints.dart';
-import 'package:openfuelfr/src/exception/http.exception.dart';
+
 import 'package:openfuelfr/src/utils/archive_utils.dart';
 import 'package:xml/xml.dart';
 
 class GetGasStationPricesService {
   final GetGasStationNamesService _gasStationNameService;
   final Dio _dio;
-  late Map<int, GasStation> _currentPrices = {};
+  Map<int, GasStation> _currentPrices = {};
 
   Map<int, GasStation> get currentPrices => _currentPrices;
 
   GetGasStationPricesService(this._gasStationNameService, this._dio);
 
-  /// return a list of selling points with instant prices
+  /// return a map of selling points with instant prices, keyed by station id
   Future<Map<int, GasStation>> getCurrentPrices() async {
-    // if no names were provided, we fetch them
+    // if no names were provided, we fetch them. A failure here is not fatal:
+    // stations simply fall back to their town as a label.
     if (_gasStationNameService.names.isEmpty) {
-      await _gasStationNameService.getNames();
+      try {
+        await _gasStationNameService.getNames();
+      } on Exception {
+        // names are cosmetic, prices are not
+      }
     }
 
-    // then we fetch the prices
-    var response = await _dio.get(Endpoints.instant, options: Options(responseType: ResponseType.bytes));
+    final Response<dynamic> response = await _dio.get<dynamic>(
+      Endpoints.instant,
+      options: Options(responseType: ResponseType.bytes),
+    );
 
     if ((response.statusCode ?? 400) >= 400) {
       throw HttpException(response.statusMessage, response.statusCode);
     }
 
-    final XmlDocument xml = await ArchiveUtils.toXML(response.data);
-    if (xml.children.length < 3) {
-      return {};
-    }
+    final XmlDocument xml = ArchiveUtils.toXML(response.data as List<int>);
 
-    _currentPrices = xml.children[2].children
-        .map((xml) => GasStation.fromXML(xml))
-        .where((station) => station.fuelPrices.isNotEmpty && station.address != '-')
-        .fold<Map<int, GasStation>>({}, (value, element) {
-      return {
-        ...value,
-        element.id: element..name = _gasStationNameService.getNameById(element.id),
-      };
-    });
+    _currentPrices = {
+      for (final station in xml
+          .findAllElements('pdv')
+          .map(GasStation.tryFromXml)
+          .whereType<GasStation>()
+          .where((station) => station.fuelPrices.isNotEmpty && station.hasPosition))
+        station.id: station
+          ..name = _gasStationNameService.getNameById(station.id)
+          ..brand = _gasStationNameService.getBrandById(station.id),
+    };
 
     return _currentPrices;
   }

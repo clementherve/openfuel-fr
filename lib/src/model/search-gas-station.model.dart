@@ -1,12 +1,12 @@
 import 'package:openfuelfr/openfuelfr.dart';
 
 class SearchGasStation {
-  late LatLng location;
-  late int searchRadiusMeters;
-  late String fuelType;
-  late bool alwaysOpen;
-  late List<int> constrainingIds;
-  late Duration lastUpdatedDays;
+  final LatLng location;
+  final int searchRadiusMeters;
+  final String fuelType;
+  final bool alwaysOpen;
+  final List<int> constrainingIds;
+  final Duration lastUpdatedDays;
 
   SearchGasStation({
     required this.location,
@@ -17,13 +17,38 @@ class SearchGasStation {
     this.lastUpdatedDays = const Duration(days: 1),
   });
 
-  SearchGasStation.fromJson(Map<String, dynamic> json) {
-    location = LatLng(json['location']['lat'], json['location']['lng']);
-    searchRadiusMeters = json['search_radius_meters'];
-    fuelType = json['fuel_type'];
-    alwaysOpen = json['always_open'];
-    constrainingIds = List<int>.from(json['constraining_ids']);
-    lastUpdatedDays = Duration(days: json['last_updated_days']);
+  factory SearchGasStation.fromJson(Map<String, dynamic> json) {
+    final Map<String, dynamic> location = Map<String, dynamic>.from(json['location'] as Map);
+    return SearchGasStation(
+      location: LatLng(
+        (location['lat'] as num).toDouble(),
+        (location['lng'] as num).toDouble(),
+      ),
+      searchRadiusMeters: json['search_radius_meters'] as int,
+      fuelType: json['fuel_type'] as String,
+      alwaysOpen: json['always_open'] as bool? ?? false,
+      constrainingIds: List<int>.from(json['constraining_ids'] as List? ?? const []),
+      // stored in seconds so sub-day freshness windows survive a round-trip
+      lastUpdatedDays: Duration(seconds: json['last_updated_seconds'] as int? ?? const Duration(days: 1).inSeconds),
+    );
+  }
+
+  SearchGasStation copyWith({
+    LatLng? location,
+    int? searchRadiusMeters,
+    String? fuelType,
+    bool? alwaysOpen,
+    List<int>? constrainingIds,
+    Duration? lastUpdatedDays,
+  }) {
+    return SearchGasStation(
+      location: location ?? this.location,
+      searchRadiusMeters: searchRadiusMeters ?? this.searchRadiusMeters,
+      fuelType: fuelType ?? this.fuelType,
+      alwaysOpen: alwaysOpen ?? this.alwaysOpen,
+      constrainingIds: constrainingIds ?? this.constrainingIds,
+      lastUpdatedDays: lastUpdatedDays ?? this.lastUpdatedDays,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -33,7 +58,7 @@ class SearchGasStation {
       'fuel_type': fuelType,
       'always_open': alwaysOpen,
       'constraining_ids': constrainingIds,
-      'last_updated_days': lastUpdatedDays.inDays,
+      'last_updated_seconds': lastUpdatedDays.inSeconds,
     };
   }
 }

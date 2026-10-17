@@ -8,6 +8,12 @@ build/
 # misc
 .vscode/
 .env
+# macOS
+.DS_Store
+
+# Pub
+pubspec.lock
+
 
 # IDE files
 *.iml

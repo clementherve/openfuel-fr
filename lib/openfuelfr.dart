@@ -1,11 +1,14 @@
 import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/model/fuel-price-statistics.model.dart';
+
 import 'package:openfuelfr/src/service/get-gas-station-prices.service.dart';
 
 export 'package:maps_toolkit/maps_toolkit.dart' show LatLng;
 
 export 'src/constant/fuel_types.dart' show FuelType;
+export 'src/exception/http.exception.dart' show HttpException;
+export 'src/exception/no-station-found.exception.dart' show NoStationFoundException;
+export 'src/model/fuel-price-statistics.model.dart' show FuelPriceStatistics;
 export 'src/model/fuel-price.model.dart' show FuelPrice;
 export 'src/model/gas-station.model.dart' show GasStation;
 export 'src/model/open-day.model.dart' show OpenDay;
@@ -16,33 +19,51 @@ export 'src/service/price-statistics.service.dart' show PriceStatisticsService;
 export 'src/service/search-gas-stations.service.dart' show SearchGasStationService;
 
 class OpenFuelService {
-  late Dio _dio;
-  late GetGasStationNamesService _getGasStationNamesService;
-  late GetGasStationPricesService _getGasStationPricesService;
-  late SearchGasStationService _searchGasStationService;
-  late PriceStatisticsService _priceStatisticsService;
+  final Dio _dio;
+  late final GetGasStationNamesService _getGasStationNamesService;
+  late final GetGasStationPricesService _getGasStationPricesService;
+  final SearchGasStationService _searchGasStationService = SearchGasStationService();
+  final PriceStatisticsService _priceStatisticsService = PriceStatisticsService();
 
-  OpenFuelService() {
-    _dio = Dio();
-    _getGasStationNamesService = GetGasStationNamesService(Dio());
+  OpenFuelService({Dio? dio}) : _dio = dio ?? Dio() {
+    _getGasStationNamesService = GetGasStationNamesService(_dio);
     _getGasStationPricesService = GetGasStationPricesService(_getGasStationNamesService, _dio);
-    _searchGasStationService = SearchGasStationService();
-    _priceStatisticsService = PriceStatisticsService();
   }
 
+  /// Fetches the instant feed, then indexes it for searching and averages it.
   Future<Map<int, GasStation>> getCurrentPrices() async {
-    var gasStationPrices = await _getGasStationPricesService.getCurrentPrices();
-    _searchGasStationService.setGasStations(gasStationPrices);
-    _priceStatisticsService.computeGlobalStatistics(gasStationPrices);
+    final Map<int, GasStation> gasStationPrices = await _getGasStationPricesService.getCurrentPrices();
+    setGasStations(gasStationPrices);
     return gasStationPrices;
   }
 
-  GasStation findBestGasStation(gasStationsPrices, searchGasSationDto) {
-    _searchGasStationService.setGasStations(gasStationsPrices);
-    return _searchGasStationService.findCheapestInRange(searchGasSationDto);
+  /// Reuses an already fetched set of stations, e.g. one restored from cache.
+  void setGasStations(final Map<int, GasStation> stations) {
+    _searchGasStationService.setGasStations(stations);
+    _priceStatisticsService.computeGlobalStatistics(stations);
   }
 
-  FuelPriceStatistics getPriceStatistics() {
-    return _priceStatisticsService.globalStatistics;
+  GasStation findBestGasStation(
+    final Map<int, GasStation> gasStationPrices,
+    final SearchGasStation search,
+  ) {
+    setGasStations(gasStationPrices);
+    return _searchGasStationService.findCheapestInRange(search);
   }
+
+  /// Every station matching [search], cheapest first.
+  List<GasStation> findGasStations(
+    final Map<int, GasStation> gasStationPrices,
+    final SearchGasStation search,
+  ) {
+    setGasStations(gasStationPrices);
+    return _searchGasStationService.findInRange(search);
+  }
+
+  /// Distance in meters between [id] and the last searched position.
+  double distanceTo(final int id) => _searchGasStationService.distance(id);
+
+  FuelPriceStatistics getPriceStatistics() => _priceStatisticsService.globalStatistics;
+
+  void close() => _dio.close();
 }

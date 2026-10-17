@@ -2,14 +2,17 @@ import 'package:openfuelfr/openfuelfr.dart';
 import 'package:xml/xml.dart';
 
 class GasStation {
-  late int _id;
-  late String name;
-  late LatLng _position;
-  late String _address;
-  late String _city;
-  late bool _isAlwaysOpen;
-  late List<OpenDay> _openDays;
-  late List<FuelPrice> _fuelPrices;
+  final int _id;
+  String name;
+  String brand;
+  final LatLng _position;
+  final String _address;
+  final String _city;
+  final String _postalCode;
+  final bool _isAlwaysOpen;
+  final List<String> _services;
+  final List<OpenDay> _openDays;
+  final List<FuelPrice> _fuelPrices;
 
   GasStation(
     this._id,
@@ -18,57 +21,96 @@ class GasStation {
     this._city,
     this._isAlwaysOpen,
     this._openDays,
-    this._fuelPrices,
-  );
+    this._fuelPrices, {
+    this.name = '-',
+    this.brand = '-',
+    String postalCode = '-',
+    List<String> services = const [],
+  })  : _postalCode = postalCode,
+        _services = services;
 
-  GasStation.fromJson(Map<String, dynamic> json) {
-    _id = json['id'];
-    name = json['name'];
-    _position = LatLng(
-      json['position'][0],
-      json['position'][1],
+  factory GasStation.fromJson(Map<String, dynamic> json) {
+    final List<dynamic> position = json['position'] as List<dynamic>;
+    return GasStation(
+      json['id'] as int,
+      LatLng((position[0] as num).toDouble(), (position[1] as num).toDouble()),
+      json['address'] as String,
+      json['city'] as String,
+      json['is_always_open'] as bool,
+      (json['open_days'] as List? ?? const [])
+          .map((day) => OpenDay.fromJson(Map<String, dynamic>.from(day as Map)))
+          .toList(),
+      (json['prices'] as List? ?? const [])
+          .map((price) => FuelPrice.fromJson(Map<String, dynamic>.from(price as Map)))
+          .toList(),
+      name: json['name'] as String? ?? '-',
+      brand: json['brand'] as String? ?? '-',
+      postalCode: json['postal_code'] as String? ?? '-',
+      services: List<String>.from(json['services'] as List? ?? const []),
     );
-    _address = json['address'];
-    _city = json['city'];
-    _isAlwaysOpen = json['is_always_open'];
-    _fuelPrices = json['prices'].map<FuelPrice>((priceJson) => FuelPrice.fromJson(priceJson)).toList();
-    _openDays = json['open_days'].map<OpenDay>((dayJson) => OpenDay.fromJson(dayJson)).toList();
   }
 
-  GasStation.fromXML(final XmlNode xml) {
-    _id = int.parse(xml.getAttribute('id') ?? '0');
-
-    _address = xml.getElement('adresse')?.innerText ?? '-';
-    _city = xml.getElement('ville')?.innerText ?? '-';
+  /// Builds a station from a `<pdv>` node, or returns null when the node
+  /// carries no usable identity (whitespace nodes, malformed entries).
+  static GasStation? tryFromXml(final XmlNode xml) {
+    final int? id = int.tryParse(xml.getAttribute('id') ?? '');
+    if (id == null) {
+      return null;
+    }
 
     // see Q4 https://www.prix-carburants.gouv.fr/rubrique/opendata/
-    _position = LatLng(double.parse(xml.getAttribute('latitude') ?? '0.0') / 100000, double.parse(xml.getAttribute('longitude') ?? '0.0') / 100000);
+    // coordinates are expressed in degrees multiplied by 100000
+    final double latitude = (double.tryParse(xml.getAttribute('latitude') ?? '') ?? 0.0) / 100000;
+    final double longitude = (double.tryParse(xml.getAttribute('longitude') ?? '') ?? 0.0) / 100000;
 
-    _fuelPrices = xml.findAllElements('prix').map((e) {
-      final String name = e.getAttribute('nom') ?? '-';
-      final DateTime lastUpdated = DateTime.parse(e.getAttribute('maj') ?? '19700101');
-      double price = double.parse(e.getAttribute('valeur') ?? '0.0');
+    final bool isAlwaysOpen = xml.getElement('horaires')?.getAttribute('automate-24-24') == '1';
 
-      if (price > 500) {
-        // pas pour les flux instantanés...
-        price = price / 1000; // 	Prix en euros multiplié par 1000
-      }
+    return GasStation(
+      id,
+      LatLng(latitude, longitude),
+      xml.getElement('adresse')?.innerText.trim() ?? '-',
+      xml.getElement('ville')?.innerText.trim() ?? '-',
+      isAlwaysOpen,
+      _parseOpenDays(xml, isAlwaysOpen),
+      _parseFuelPrices(xml),
+      postalCode: xml.getAttribute('cp') ?? '-',
+      services: xml.findAllElements('service').map((e) => e.innerText.trim()).toList(),
+    );
+  }
 
-      return FuelPrice(name, lastUpdated, price);
-    }).toList();
+  static List<FuelPrice> _parseFuelPrices(final XmlNode xml) {
+    return xml
+        .findAllElements('prix')
+        .map((e) {
+          final String type = e.getAttribute('nom') ?? '-';
+          final DateTime lastUpdated =
+              DateTime.tryParse(e.getAttribute('maj') ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0);
 
-    _isAlwaysOpen = xml.getElement('horaires')?.getAttribute('automate-24-24') == '1';
+          double price = double.tryParse(e.getAttribute('valeur') ?? '') ?? double.infinity;
 
-    _openDays = xml.findAllElements('jour').map((e) {
-      final String name = e.getAttribute('nom') ?? '-';
-      final bool isOpen = e.getAttribute('ferme') == '';
+          // the daily and yearly feeds express prices in euros multiplied by 1000,
+          // the instant one does not
+          if (price.isFinite && price > 500) {
+            price = price / 1000;
+          }
 
-      final String openingHour = e.getElement('horaire')?.getAttribute('ouverture') ?? (_isAlwaysOpen ? '00.00' : '-');
-      final String closingHour = e.getElement('horaire')?.getAttribute('fermeture') ?? (_isAlwaysOpen ? '23.59' : '-');
+          return FuelPrice(type, lastUpdated, price);
+        })
+        .where((fuel) => fuel.type != '-' && fuel.isKnown)
+        .toList();
+  }
 
-      final OpeningHours openingHours = OpeningHours(openingHour, closingHour);
+  static List<OpenDay> _parseOpenDays(final XmlNode xml, final bool isAlwaysOpen) {
+    return xml.findAllElements('jour').map((e) {
+      final String day = e.getAttribute('nom') ?? '-';
+      // `ferme="1"` means closed, an empty attribute means open
+      final bool isOpen = e.getAttribute('ferme') != '1';
 
-      return OpenDay(name, isOpen, openingHours);
+      final XmlElement? hours = e.getElement('horaire');
+      final String opening = hours?.getAttribute('ouverture') ?? (isAlwaysOpen ? '00.00' : '-');
+      final String closing = hours?.getAttribute('fermeture') ?? (isAlwaysOpen ? '23.59' : '-');
+
+      return OpenDay(day, isOpen, OpeningHours(opening, closing));
     }).toList();
   }
 
@@ -76,39 +118,58 @@ class GasStation {
   LatLng get position => _position;
   String get address => _address;
   String get city => _city;
+  String get postalCode => _postalCode;
   bool get isAlwaysOpen => _isAlwaysOpen;
+  List<String> get services => _services;
   List<OpenDay> get openDays => _openDays;
   List<FuelPrice> get fuelPrices => _fuelPrices;
 
-  /// return all fuel types
-  List<String> getAvailableFuelTypes() {
-    return _fuelPrices.map((fuel) => fuel.type).toList();
+  /// True when the feed gave real coordinates for this station.
+  bool get hasPosition => _position.latitude != 0 || _position.longitude != 0;
+
+  /// A label safe to show in a UI: the brand when known, the town otherwise.
+  String get displayName {
+    if (name != '-' && name.isNotEmpty) return name;
+    if (brand != '-' && brand.isNotEmpty) return brand;
+    return _city != '-' && _city.isNotEmpty ? _city : 'Station $_id';
+  }
+
+  /// return all fuel types this station sells
+  List<String> getAvailableFuelTypes() => _fuelPrices.map((fuel) => fuel.type).toList();
+
+  bool sells(final String fuelType) => _fuelPrices.any((fuel) => fuel.type == fuelType);
+
+  FuelPrice? getFuelByType(final String fuelType) {
+    for (final fuel in _fuelPrices) {
+      if (fuel.type == fuelType) return fuel;
+    }
+    return null;
   }
 
   double getFuelPriceByType(
     final String fuelType, {
     final double elseValue = double.infinity,
   }) {
-    final FuelPrice fuel = _fuelPrices.firstWhere(
-      (fuel) => fuel.type == fuelType,
-      orElse: (() => FuelPrice.empty()),
-    );
-    return fuel.price == double.infinity ? elseValue : fuel.price;
+    final FuelPrice fuel = getFuelByType(fuelType) ?? FuelPrice.empty();
+    return fuel.price.isFinite ? fuel.price : elseValue;
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': _id,
       'name': name,
-      'position': [
-        _position.latitude,
-        _position.longitude,
-      ],
+      'brand': brand,
+      'position': [_position.latitude, _position.longitude],
       'address': _address,
       'city': _city,
+      'postal_code': _postalCode,
       'is_always_open': _isAlwaysOpen,
+      'services': _services,
       'prices': _fuelPrices.map((e) => e.toJson()).toList(),
-      'open_days': _openDays.map((e) => e.toJson()).toList()
+      'open_days': _openDays.map((e) => e.toJson()).toList(),
     };
   }
+
+  @override
+  String toString() => '$displayName ($_id) - $_address, $_city';
 }

@@ -1,20 +1,30 @@
 class OpeningHours {
-  late String _openingHour;
-  late String _closingHour;
+  final String _openingHour;
+  final String _closingHour;
+
   OpeningHours(this._openingHour, this._closingHour);
 
-  OpeningHours.fromJson(Map<String, dynamic> json) {
-    _openingHour = json['opening_hour'];
-    _closingHour = json['closing_hour'];
-  }
+  factory OpeningHours.fromJson(Map<String, dynamic> json) => OpeningHours(
+        json['opening_hour'] as String,
+        json['closing_hour'] as String,
+      );
 
-  String get openingHours => _openingHour;
+  String get openingHour => _openingHour;
   String get closingHour => _closingHour;
 
-  Map toJson() {
+  /// Kept for backwards compatibility; prefer [openingHour].
+  @Deprecated('Use openingHour instead')
+  String get openingHours => _openingHour;
+
+  bool get isKnown => _openingHour != '-' && _closingHour != '-';
+
+  Map<String, dynamic> toJson() {
     return {
       'opening_hour': _openingHour,
       'closing_hour': _closingHour,
     };
   }
+
+  @override
+  String toString() => '$_openingHour - $_closingHour';
 }

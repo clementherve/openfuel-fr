@@ -1,27 +1,34 @@
 import 'package:openfuelfr/openfuelfr.dart';
-import 'package:openfuelfr/src/model/fuel-price-statistics.model.dart';
 
 class PriceStatisticsService {
-  late FuelPriceStatistics _globalStatistics = FuelPriceStatistics.zero();
+  FuelPriceStatistics _globalStatistics = FuelPriceStatistics.zero();
 
+  /// Averages each fuel over the stations that actually sell it.
+  ///
+  /// Dividing by the whole station count instead would drag every average
+  /// down towards zero, badly so for the rarer fuels such as GPLc.
   void computeGlobalStatistics(final Map<int, GasStation> stations) {
-    _globalStatistics = stations.values.fold<FuelPriceStatistics>(FuelPriceStatistics.zero(), (prev, station) {
-      return FuelPriceStatistics(
-        e10: prev.e10 + station.getFuelPriceByType(FuelType.e10, elseValue: 0),
-        gazole: prev.gazole + station.getFuelPriceByType(FuelType.gazole, elseValue: 0),
-        sp95: prev.sp95 + station.getFuelPriceByType(FuelType.sp95, elseValue: 0),
-        sp98: prev.sp98 + station.getFuelPriceByType(FuelType.sp98, elseValue: 0),
-        gplc: prev.gplc + station.getFuelPriceByType(FuelType.gplc, elseValue: 0),
-        e85: prev.e85 + station.getFuelPriceByType(FuelType.e85, elseValue: 0),
-      );
-    });
+    final Map<String, double> sums = {for (final type in FuelType.all) type: 0.0};
+    final Map<String, int> counts = {for (final type in FuelType.all) type: 0};
 
-    _globalStatistics.e10 /= stations.length;
-    _globalStatistics.e85 /= stations.length;
-    _globalStatistics.gazole /= stations.length;
-    _globalStatistics.gplc /= stations.length;
-    _globalStatistics.sp95 /= stations.length;
-    _globalStatistics.sp98 /= stations.length;
+    for (final station in stations.values) {
+      for (final fuel in station.fuelPrices) {
+        if (!sums.containsKey(fuel.type) || !fuel.isKnown) continue;
+        sums[fuel.type] = sums[fuel.type]! + fuel.price;
+        counts[fuel.type] = counts[fuel.type]! + 1;
+      }
+    }
+
+    double average(String type) => counts[type]! == 0 ? 0.0 : sums[type]! / counts[type]!;
+
+    _globalStatistics = FuelPriceStatistics(
+      e10: average(FuelType.e10),
+      e85: average(FuelType.e85),
+      gazole: average(FuelType.gazole),
+      gplc: average(FuelType.gplc),
+      sp95: average(FuelType.sp95),
+      sp98: average(FuelType.sp98),
+    );
   }
 
   FuelPriceStatistics get globalStatistics => _globalStatistics;
