@@ -77,6 +77,24 @@ final double meters = openFuelService.distanceTo(cheapest.id);
 final FuelPriceStatistics stats = openFuelService.getPriceStatistics();
 ```
 
+## Cache et isolate
+
+Le flux zippé pèse ~1 Mo mais se décode en plusieurs dizaines de Mo d'objets, et
+le téléchargement prend une vingtaine de secondes. Pour mettre en cache et
+décoder hors du thread principal, téléchargement et décodage sont séparés :
+
+```dart
+final List<int> zipped = await openFuelService.downloadInstantFeed();
+final GasStationNames names = await openFuelService.downloadNames();
+// ... écrire `zipped` sur disque ...
+
+// `parseInstantFeed` est pure : pas d'IO, pas d'état
+final Map<int, GasStation> stations = await Isolate.run(
+  () => OpenFuelService.parseInstantFeed(zipped, names: names),
+);
+openFuelService.setGasStations(stations);
+```
+
 `findBestGasStation` est tolérant : si aucune station ne satisfait tous les critères,
 les filtres optionnels (favoris, 24/24) sont relâchés, et si le rayon est vide la
 station la plus proche est renvoyée. `findGasStations` est strict et renvoie une liste

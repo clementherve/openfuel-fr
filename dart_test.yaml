@@ -1,0 +1,8 @@
+# The default run stays offline; the live-feed tests are opt-in:
+#   dart test test/network
+paths:
+  - test/parsing_test.dart
+  - test/search_test.dart
+
+tags:
+  network:

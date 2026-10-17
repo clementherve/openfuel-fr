@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<pdv_liste>
+  <pdv id="69007001" latitude="4575892" longitude="486148" cp="69007" pop="R">
+    <adresse>12 RUE DE MARSEILLE</adresse>
+    <ville>Lyon</ville>
+    <horaires automate-24-24="1">
+      <jour id="1" nom="Lundi" ferme="">
+        <horaire ouverture="07.00" fermeture="20.00"/>
+      </jour>
+      <jour id="7" nom="Dimanche" ferme="1"/>
+    </horaires>
+    <services>
+      <service>Station de gonflage</service>
+    </services>
+    <prix nom="Gazole" id="1" maj="2026-10-17 05:11:49" valeur="1.800"/>
+    <prix nom="E10" id="5" maj="2026-10-17 05:11:50" valeur="1.700"/>
+  </pdv>
+  <pdv id="69008002" latitude="4574000" longitude="486000" cp="69008" pop="R">
+    <adresse>3 AVENUE DES FRERES LUMIERE</adresse>
+    <ville>Lyon</ville>
+    <horaires automate-24-24="">
+      <jour id="1" nom="Lundi" ferme=""/>
+    </horaires>
+    <services/>
+    <prix nom="Gazole" id="1" maj="2026-10-17 05:11:49" valeur="1.900"/>
+    <prix nom="E10" id="5" maj="2026-10-17 05:11:50" valeur="1.650"/>
+  </pdv>
+  <pdv id="75001003" latitude="4885340" longitude="234220" cp="75001" pop="A">
+    <adresse>QUAI DU LOUVRE</adresse>
+    <ville>Montgenèvre</ville>
+    <horaires automate-24-24="1"/>
+    <prix nom="E10" id="5" maj="2026-10-17 05:11:50" valeur="1.500"/>
+  </pdv>
+  <pdv id="99999999" latitude="0" longitude="0" cp="00000" pop="R">
+    <adresse>-</adresse>
+    <ville>-</ville>
+    <horaires automate-24-24=""/>
+  </pdv>
+</pdv_liste>

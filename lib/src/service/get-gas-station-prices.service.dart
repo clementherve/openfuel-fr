@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/constant/endpoints.dart';
-
 import 'package:openfuelfr/src/utils/archive_utils.dart';
 import 'package:xml/xml.dart';
 
@@ -13,6 +12,24 @@ class GetGasStationPricesService {
   Map<int, GasStation> get currentPrices => _currentPrices;
 
   GetGasStationPricesService(this._gasStationNameService, this._dio);
+
+  /// Downloads the instant feed, still zipped.
+  ///
+  /// Kept separate from parsing so callers can cache the bytes, which are two
+  /// orders of magnitude smaller than the stations they decode to, and run the
+  /// parse off the main isolate.
+  Future<List<int>> downloadInstantFeed() async {
+    final Response<List<int>> response = await _dio.get<List<int>>(
+      Endpoints.instant,
+      options: Options(responseType: ResponseType.bytes),
+    );
+
+    if ((response.statusCode ?? 400) >= 400) {
+      throw HttpException(response.statusMessage, response.statusCode);
+    }
+
+    return response.data ?? const [];
+  }
 
   /// return a map of selling points with instant prices, keyed by station id
   Future<Map<int, GasStation>> getCurrentPrices() async {
@@ -26,28 +43,31 @@ class GetGasStationPricesService {
       }
     }
 
-    final Response<dynamic> response = await _dio.get<dynamic>(
-      Endpoints.instant,
-      options: Options(responseType: ResponseType.bytes),
+    _currentPrices = parseInstantFeed(
+      await downloadInstantFeed(),
+      names: _gasStationNameService.names,
     );
 
-    if ((response.statusCode ?? 400) >= 400) {
-      throw HttpException(response.statusMessage, response.statusCode);
-    }
+    return _currentPrices;
+  }
 
-    final XmlDocument xml = ArchiveUtils.toXML(response.data as List<int>);
+  /// Decodes a zipped instant feed into stations. Pure: no IO, no state, so it
+  /// is safe to hand to `Isolate.run`.
+  static Map<int, GasStation> parseInstantFeed(
+    final List<int> zippedFeed, {
+    final GasStationNames names = const GasStationNames.empty(),
+  }) {
+    final XmlDocument xml = ArchiveUtils.toXML(zippedFeed);
 
-    _currentPrices = {
+    return {
       for (final station in xml
           .findAllElements('pdv')
           .map(GasStation.tryFromXml)
           .whereType<GasStation>()
           .where((station) => station.fuelPrices.isNotEmpty && station.hasPosition))
         station.id: station
-          ..name = _gasStationNameService.getNameById(station.id)
-          ..brand = _gasStationNameService.getBrandById(station.id),
+          ..name = names.nameOf(station.id)
+          ..brand = names.brandOf(station.id),
     };
-
-    return _currentPrices;
   }
 }

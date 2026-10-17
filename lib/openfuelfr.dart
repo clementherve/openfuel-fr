@@ -10,6 +10,7 @@ export 'src/exception/http.exception.dart' show HttpException;
 export 'src/exception/no-station-found.exception.dart' show NoStationFoundException;
 export 'src/model/fuel-price-statistics.model.dart' show FuelPriceStatistics;
 export 'src/model/fuel-price.model.dart' show FuelPrice;
+export 'src/model/gas-station-names.model.dart' show GasStationNames;
 export 'src/model/gas-station.model.dart' show GasStation;
 export 'src/model/open-day.model.dart' show OpenDay;
 export 'src/model/opening-hours.model.dart' show OpeningHours;
@@ -36,6 +37,23 @@ class OpenFuelService {
     setGasStations(gasStationPrices);
     return gasStationPrices;
   }
+
+  /// Downloads the instant feed without decoding it.
+  ///
+  /// Pair it with [parseInstantFeed] to cache the (small) zipped bytes and
+  /// decode them off the main isolate.
+  Future<List<int>> downloadInstantFeed() => _getGasStationPricesService.downloadInstantFeed();
+
+  /// Downloads the station name list that the feed itself does not carry.
+  Future<GasStationNames> downloadNames() => _getGasStationNamesService.getNames();
+
+  /// Decodes a zipped instant feed. Pure, so it is safe to hand to
+  /// `Isolate.run`.
+  static Map<int, GasStation> parseInstantFeed(
+    final List<int> zippedFeed, {
+    final GasStationNames names = const GasStationNames.empty(),
+  }) =>
+      GetGasStationPricesService.parseInstantFeed(zippedFeed, names: names);
 
   /// Reuses an already fetched set of stations, e.g. one restored from cache.
   void setGasStations(final Map<int, GasStation> stations) {
