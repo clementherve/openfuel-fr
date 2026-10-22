@@ -4,8 +4,10 @@ Un client Dart pour récupérer les prix des carburants en France, depuis les do
 gouvernementales ouvertes disponibles [ici](https://www.prix-carburants.gouv.fr/rubrique/opendata/).
 
 Le flux instantané est servi en ZIP/XML (ISO-8859-1) et ne contient pas le nom des
-enseignes : celles-ci sont complétées depuis une liste annexe indexée par identifiant
-de station. Une station inconnue de cette liste garde sa ville comme libellé.
+enseignes : celles-ci sont complétées depuis la [liste des stations de
+data.gouv.fr](https://tabular-api.data.gouv.fr/api/resources/0207ded0-2d19-47af-b1a6-62915ec1b721/data/),
+indexée par identifiant de station. Une station inconnue de cette liste garde sa
+ville comme libellé.
 
 ## Installation
 

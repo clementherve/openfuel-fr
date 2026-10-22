@@ -4,6 +4,7 @@ class Endpoints {
   static const daily = '$_base/opendata/jour';
   static const year = '$_base/opendata/annee';
   static String yearly(final int year) => '$_base/opendata/annee/$year';
-  static const names =
-      'https://gist.githubusercontent.com/clementherve/bb8dbbf08036c58d233bac87da2a9ecc/raw/eb9fbca235ccaf23d7c6e44a762b05c7b8a9683b/stations.json';
+  // the paginated `/data/` endpoint caps at 200 rows, so ask for the JSON
+  // export: the same list of ~10k stations in a single request
+  static const names = 'https://tabular-api.data.gouv.fr/api/resources/0207ded0-2d19-47af-b1a6-62915ec1b721/data/json/';
 }

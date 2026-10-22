@@ -25,10 +25,18 @@ class GetGasStationNamesService {
     }
 
     final dynamic data = response.data;
-    // dio decodes json itself when the server announces it, the gist does not
-    _names = GasStationNames(
-      data is String ? Map<String, dynamic>.from(jsonDecode(data) as Map) : Map<String, dynamic>.from(data as Map),
-    );
+    // dio decodes json itself when the server announces it
+    final List<dynamic> rows = (data is String ? jsonDecode(data) : data) as List<dynamic>;
+
+    _names = GasStationNames({
+      for (final dynamic row in rows)
+        if (row is Map && row['id_station_officiel'] != null && row['nom_normalise'] is String)
+          row['id_station_officiel'].toString(): <String, dynamic>{
+            // the dataset only carries a normalised brand; `nameOf` falls back
+            // to `marque`, so it doubles as the station's label
+            'marque': row['nom_normalise'] as String,
+          },
+    });
     return _names;
   }
 }
