@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,3 +26,51 @@ jobs:
 
       # offline unit tests; test/network/ hits the real feed and stays opt-in
       - run: dart test
+
+  # pubspec.yaml is the single source of truth for the version: when it changes
+  # on main, the matching vX.Y.Z tag is created on that commit. Nothing is
+  # committed back -- the tag only marks the commit that already carries it.
+  tag:
+    name: Tag the version from pubspec.yaml
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the tag with GITHUB_TOKEN
+    concurrency:
+      group: release-tag
+      cancel-in-progress: false
+    steps:
+      # full history so an existing tag is visible locally, not just fetched lazily
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Read the version
+        id: version
+        run: |
+          set -euo pipefail
+          VERSION=$(sed -n 's/^version:[[:space:]]*//p' pubspec.yaml | head -n 1 | tr -d '[:space:]')
+          if [ -z "$VERSION" ]; then
+            echo "::error::no version found in pubspec.yaml"
+            exit 1
+          fi
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "pubspec version: $VERSION"
+
+      - name: Create the tag if it does not exist yet
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
+            echo "$TAG already exists, nothing to do."
+            exit 0
+          fi
+          if git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "$TAG already exists on origin, nothing to do."
+            exit 0
+          fi
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "refs/tags/$TAG"
+          echo "created $TAG on $GITHUB_SHA"
