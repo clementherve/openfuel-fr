@@ -1,6 +1,6 @@
 name: openfuelfr
 description: A client for https://www.prix-carburants.gouv.fr/rubrique/opendata/
-version: 3.1.1
+version: 4.0.0
 repository: https://github.com/clementherve/openfuel-fr
 
 environment:

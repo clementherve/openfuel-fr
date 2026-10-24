@@ -69,7 +69,7 @@ void main() {
       expect(stations.firstWhere((s) => s.id == 69007001).hasPosition, isTrue);
     });
 
-    test('falls back to the town when no brand is known', () {
+    test('falls back to the town when no name is known', () {
       expect(stations.firstWhere((s) => s.id == 69007001).displayName, equals('Lyon'));
     });
 
@@ -128,7 +128,7 @@ void main() {
       );
 
       expect(stations[69007001]!.name, equals('Intermarché Jean Macé'));
-      // no `nom`, so the brand stands in
+      // the list supplies the whole label, brand included
       expect(stations[69008002]!.name, equals('Total'));
       // absent from the list entirely
       expect(stations[75001003]!.name, equals('-'));

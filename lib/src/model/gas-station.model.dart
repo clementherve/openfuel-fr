@@ -124,7 +124,7 @@ class GasStation {
   /// True when the feed gave real coordinates for this station.
   bool get hasPosition => _position.latitude != 0 || _position.longitude != 0;
 
-  /// A label safe to show in a UI: the brand when known, the town otherwise.
+  /// A label safe to show in a UI: the station's name, the town otherwise.
   String get displayName {
     if (name != '-' && name.isNotEmpty) return name;
     return _city != '-' && _city.isNotEmpty ? _city : 'Station $_id';
