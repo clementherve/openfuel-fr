@@ -23,8 +23,7 @@ dependencies:
 
 ```dart
 int id;
-String name;          // enseigne, ou '-' si inconnue
-String brand;
+String name;          // nom normalisé de la station, ou '-' si inconnu
 LatLng position;
 String address;
 String city;
@@ -34,7 +33,7 @@ List<String> services;
 List<OpenDay> openDays;
 List<FuelPrice> fuelPrices;
 
-String get displayName; // name, à défaut brand, à défaut la ville
+String get displayName; // name, à défaut la ville
 bool get hasPosition;
 bool sells(String fuelType);
 FuelPrice? getFuelByType(String fuelType);

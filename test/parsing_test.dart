@@ -69,7 +69,7 @@ void main() {
       expect(stations.firstWhere((s) => s.id == 69007001).hasPosition, isTrue);
     });
 
-    test('falls back to the town when no brand is known', () {
+    test('falls back to the town when no name is known', () {
       expect(stations.firstWhere((s) => s.id == 69007001).displayName, equals('Lyon'));
     });
 
@@ -122,14 +122,13 @@ void main() {
       final Map<int, GasStation> stations = OpenFuelService.parseInstantFeed(
         zippedFixture(),
         names: const GasStationNames({
-          '69007001': {'marque': 'Intermarché', 'nom': 'Intermarché Jean Macé'},
-          '69008002': {'marque': 'Total'},
+          69007001: 'Intermarché Jean Macé',
+          69008002: 'Total',
         }),
       );
 
       expect(stations[69007001]!.name, equals('Intermarché Jean Macé'));
-      expect(stations[69007001]!.brand, equals('Intermarché'));
-      // no `nom`, so the brand stands in
+      // the list supplies the whole label, brand included
       expect(stations[69008002]!.name, equals('Total'));
       // absent from the list entirely
       expect(stations[75001003]!.name, equals('-'));

@@ -65,9 +65,7 @@ class GetGasStationPricesService {
           .map(GasStation.tryFromXml)
           .whereType<GasStation>()
           .where((station) => station.fuelPrices.isNotEmpty && station.hasPosition))
-        station.id: station
-          ..name = names.nameOf(station.id)
-          ..brand = names.brandOf(station.id),
+        station.id: station..name = names.nameOf(station.id),
     };
   }
 }

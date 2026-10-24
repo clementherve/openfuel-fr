@@ -12,8 +12,6 @@ class GetGasStationNamesService {
 
   GasStationNames get names => _names;
 
-  String getBrandById(final int stationId) => _names.brandOf(stationId);
-
   String getNameById(final int stationId) => _names.nameOf(stationId);
 
   /// return the names of all gas stations, indexed by their id
@@ -24,19 +22,29 @@ class GetGasStationNamesService {
       throw HttpException(response.statusMessage, response.statusCode);
     }
 
-    final dynamic data = response.data;
     // dio decodes json itself when the server announces it
-    final List<dynamic> rows = (data is String ? jsonDecode(data) : data) as List<dynamic>;
+    final dynamic payload = response.data;
+    final dynamic data = payload is String ? jsonDecode(payload) : payload;
 
-    _names = GasStationNames({
-      for (final dynamic row in rows)
-        if (row is Map && row['id_station_officiel'] != null && row['nom_normalise'] is String)
-          row['id_station_officiel'].toString(): <String, dynamic>{
-            // the dataset only carries a normalised brand; `nameOf` falls back
-            // to `marque`, so it doubles as the station's label
-            'marque': row['nom_normalise'] as String,
-          },
-    });
+    if (data is! List) {
+      throw FormatException('Expected a JSON list, got ${data.runtimeType}');
+    }
+
+    // rows without a usable numeric id or a non-empty string name are skipped
+    // rather than aborting the whole list
+    final Map<int, String> parsed = <int, String>{};
+    for (final dynamic item in data) {
+      if (item is! Map) {
+        continue;
+      }
+      final int? id = int.tryParse('${item['id_station_officiel']}');
+      final dynamic name = item['nom_normalise'];
+      if (id != null && name is String && name.isNotEmpty) {
+        parsed[id] = name;
+      }
+    }
+
+    _names = GasStationNames(parsed);
     return _names;
   }
 }

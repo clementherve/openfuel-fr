@@ -44,10 +44,9 @@ void main() {
 
     final GasStationNames names = await GetGasStationNamesService(dio).getNames();
 
-    expect(names.brandOf(1000001), equals('Carrefour Market'));
     expect(names.nameOf(1000001), equals('Carrefour Market'));
-    expect(names.brandOf(1000002), equals('Carrefour'));
+    expect(names.nameOf(1000002), equals('Carrefour'));
     expect(names.nameOf(9999999), equals('-'));
-    expect(names.asMap.keys, unorderedEquals(['1000001', '1000002']));
+    expect(names.asMap.keys, unorderedEquals([1000001, 1000002]));
   });
 }
