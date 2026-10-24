@@ -122,13 +122,12 @@ void main() {
       final Map<int, GasStation> stations = OpenFuelService.parseInstantFeed(
         zippedFixture(),
         names: const GasStationNames({
-          '69007001': {'marque': 'Intermarché', 'nom': 'Intermarché Jean Macé'},
-          '69008002': {'marque': 'Total'},
+          69007001: 'Intermarché Jean Macé',
+          69008002: 'Total',
         }),
       );
 
       expect(stations[69007001]!.name, equals('Intermarché Jean Macé'));
-      expect(stations[69007001]!.brand, equals('Intermarché'));
       // no `nom`, so the brand stands in
       expect(stations[69008002]!.name, equals('Total'));
       // absent from the list entirely

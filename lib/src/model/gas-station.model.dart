@@ -4,7 +4,6 @@ import 'package:xml/xml.dart';
 class GasStation {
   final int _id;
   String name;
-  String brand;
   final LatLng _position;
   final String _address;
   final String _city;
@@ -23,7 +22,6 @@ class GasStation {
     this._openDays,
     this._fuelPrices, {
     this.name = '-',
-    this.brand = '-',
     String postalCode = '-',
     List<String> services = const [],
   })  : _postalCode = postalCode,
@@ -44,7 +42,6 @@ class GasStation {
           .map((price) => FuelPrice.fromJson(Map<String, dynamic>.from(price as Map)))
           .toList(),
       name: json['name'] as String? ?? '-',
-      brand: json['brand'] as String? ?? '-',
       postalCode: json['postal_code'] as String? ?? '-',
       services: List<String>.from(json['services'] as List? ?? const []),
     );
@@ -130,7 +127,6 @@ class GasStation {
   /// A label safe to show in a UI: the brand when known, the town otherwise.
   String get displayName {
     if (name != '-' && name.isNotEmpty) return name;
-    if (brand != '-' && brand.isNotEmpty) return brand;
     return _city != '-' && _city.isNotEmpty ? _city : 'Station $_id';
   }
 
@@ -158,7 +154,6 @@ class GasStation {
     return {
       'id': _id,
       'name': name,
-      'brand': brand,
       'position': [_position.latitude, _position.longitude],
       'address': _address,
       'city': _city,

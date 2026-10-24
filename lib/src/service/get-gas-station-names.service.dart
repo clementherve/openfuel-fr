@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:openfuelfr/openfuelfr.dart';
 import 'package:openfuelfr/src/constant/endpoints.dart';
@@ -12,8 +10,6 @@ class GetGasStationNamesService {
 
   GasStationNames get names => _names;
 
-  String getBrandById(final int stationId) => _names.brandOf(stationId);
-
   String getNameById(final int stationId) => _names.nameOf(stationId);
 
   /// return the names of all gas stations, indexed by their id
@@ -25,17 +21,16 @@ class GetGasStationNamesService {
     }
 
     final dynamic data = response.data;
-    // dio decodes json itself when the server announces it
-    final List<dynamic> rows = (data is String ? jsonDecode(data) : data) as List<dynamic>;
+    if (data is! List) {
+      throw UnsupportedError(
+        "Réponse inattendue : une liste JSON était attendue, reçu ${data.runtimeType}",
+      );
+    }
 
     _names = GasStationNames({
-      for (final dynamic row in rows)
-        if (row is Map && row['id_station_officiel'] != null && row['nom_normalise'] is String)
-          row['id_station_officiel'].toString(): <String, dynamic>{
-            // the dataset only carries a normalised brand; `nameOf` falls back
-            // to `marque`, so it doubles as the station's label
-            'marque': row['nom_normalise'] as String,
-          },
+      for (final item in data.cast<Map<String, dynamic>>())
+        if (item["id_station_officiel"] != null && item["nom_normalise"] != null)
+          int.parse(item["id_station_officiel"].toString()): item["nom_normalise"].toString(),
     });
     return _names;
   }
